@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/chusapo-logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>チューサポ - 穿刺技術サポートプラットフォーム</title>
+    
+    <!-- Google Fonts: Noto Sans JP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        -webkit-overflow-scrolling: touch;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* デバッグ用 */
+      .error-display {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: red;
+        color: white;
+        padding: 10px;
+        z-index: 9999;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f4f6;">
+        <div style="text-align: center;">
+          <div style="font-size: 24px; margin-bottom: 16px;">🏥</div>
+          <div style="font-size: 18px; font-weight: bold; color: #374151; margin-bottom: 8px;">チューサポ</div>
+          <div style="font-size: 14px; color: #6b7280;">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // エラーハンドリング
+      window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+        document.body.insertAdjacentHTML('afterbegin', 
+          '<div class="error-display">エラー: ' + e.message + '</div>');
+      });
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+        document.body.insertAdjacentHTML('afterbegin', 
+          '<div class="error-display">Promise エラー: ' + e.reason + '</div>');
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

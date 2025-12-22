@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>穿刺の相談所 - インタラクティブデモ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+  <!-- メインアプリケーション -->
+  <div class="min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <button id="mobile-menu-btn" class="lg:hidden p-3 rounded-xl hover:bg-gray-50 transition-colors">
+              <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+            <div class="flex items-center space-x-3">
+              <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <div class="w-6 h-6 bg-white rounded-md flex items-center justify-center">
+                  <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                </div>
+              </div>
+              <h1 class="text-2xl font-black text-gray-900">穿刺の相談所</h1>
+            </div>
+          </div>
+          
+          <!-- 検索バー -->
+          <div class="hidden md:flex flex-1 max-w-md mx-8">
+            <div class="relative w-full">
+              <input id="search-input" type="text" placeholder="質問や技術を検索..." 
+                class="w-full px-4 py-3 pl-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+              <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- ユーザーメニュー -->
+          <div class="flex items-center space-x-4">
+            <button class="p-3 rounded-xl hover:bg-gray-50 transition-colors relative">
+              <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-13"></path>
+              </svg>
+              <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span>
+            </button>
+            <button id="new-question-btn" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-lg hover:scale-105">
+              質問投稿
+            </button>
+            <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center cursor-pointer">
+              <span class="text-white font-bold">山田</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex">
+      <!-- サイドバー -->
+      <aside id="sidebar" class="fixed lg:sticky top-0 left-0 h-screen bg-white border-r border-gray-200 shadow-lg w-72 lg:w-64 transform transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 z-40 overflow-y-auto">
+        <!-- サイドバーヘッダー -->
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <div class="w-6 h-6 bg-white rounded-md flex items-center justify-center">
+                  <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
+                </div>
+              </div>
+              <h2 class="text-xl font-black text-gray-900">穿刺の相談所</h2>
+            </div>
+            <button id="close-sidebar" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+              <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ナビゲーション -->
+        <nav class="p-4">
+          <div class="space-y-1">
+            <button data-section="home" class="nav-item w-full flex items-center justify-between p-3 rounded-xl bg-blue-50 text-blue-600 transition-all duration-200">
+              <div class="flex items-center space-x-3">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span class="font-medium">ホーム</span>
+              </div>
+            </button>
+            
+            <button data-section="questions" class="nav-item w-full flex items-center justify-between p-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200">
+              <div class="flex items-center space-x-3">
+                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <span class="font-medium">質問一覧</span>
+              </div>
+              <span class="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-600 rounded-full">24</span>
+            </button>
+
+            <button data-section="trending" class="nav-item w-full flex items-center space-x-3 p-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+              <span class="font-medium">トレンド</span>
+            </button>
+
+            <button data-section="guidelines" class="nav-item w-full flex items-center space-x-3 p-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+              <span class="font-medium">ガイドライン</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- カテゴリー -->
+        <div class="px-4 pb-4">
+          <h3 class="px-3 mb-3 text-xs font-bold text-gray-500 uppercase tracking-wider">カテゴリー</h3>
+          <div class="space-y-1">
+            <button data-category="injection" class="category-item w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5l-1-1z"></path>
+              </svg>
+              <span class="font-medium text-gray-700">注射</span>
+              <span class="text-xs text-gray-400">8件</span>
+            </button>
+            
+            <button data-category="blood-collection" class="category-item w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="font-medium text-gray-700">採血</span>
+              <span class="text-xs text-gray-400">12件</span>
+            </button>
+
+            <button data-category="route-securing" class="category-item w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              <span class="font-medium text-gray-700">ルート確保</span>
+              <span class="text-xs text-gray-400">6件</span>
+            </button>
+
+            <button data-category="arterial" class="category-item w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+              <span class="font-medium text-gray-700">動脈穿刺</span>
+              <span class="text-xs text-gray-400">4件</span>
+            </button>
+
+            <button data-category="others" class="category-item w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+              <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+              </svg>
+              <span class="font-medium text-gray-700">その他</span>
+              <span class="text-xs text-gray-400">3件</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 統計情報 -->
+        <div class="mx-4 mb-4">
+          <h4 class="px-3 mb-3 text-xs font-bold text-gray-500 uppercase tracking-wider">今日の活動</h4>
+          <div class="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">新しい質問</span>
+                <span class="font-bold text-gray-900">7</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">回答済み</span>
+                <span class="font-bold text-green-600">15</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">解決率</span>
+                <span class="font-bold text-blue-600">89%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- プロフィール -->
+        <div class="p-4 border-t border-gray-200 mt-auto">
+          <div class="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-all duration-200">
+            <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <span class="text-white font-bold">山田</span>
+            </div>
+            <div class="flex-1">
+              <p class="font-medium text-gray-900">山田 太郎</p>
+              <p class="text-sm text-gray-500">循環器内科医</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- オーバーレイ -->
+      <div id="overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
+
+      <!-- メインコンテンツ -->
+      <main class="flex-1 px-6 lg:px-8 py-12">
+        <div class="max-w-7xl mx-auto">
+          <!-- メインコンテンツエリア -->
+          <div id="main-content">
+            <!-- ホームビュー（デフォルト） -->
+            <div id="home-view" class="content-section">
+              <!-- ヒーローセクション -->
+              <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-12 mb-12 text-white shadow-2xl relative overflow-hidden">
+                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between">
+                  <div class="mb-8 lg:mb-0">
+                    <div class="flex items-center space-x-3 mb-4">
+                      <svg class="h-8 w-8 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                      </svg>
+                      <h1 class="text-4xl lg:text-5xl font-black">穿刺の相談所へようこそ</h1>
+                    </div>
+                    <p class="text-blue-100 text-xl font-medium leading-relaxed">
+                      穿刺技術と手技のプロフェッショナル相談プラットフォーム
+                    </p>
+                  </div>
+                  <button id="hero-question-btn" class="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black hover:bg-blue-50 transition-all duration-200 flex items-center space-x-3 shadow-xl hover:shadow-2xl hover:scale-105">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>質問を投稿</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 統計カード -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-100">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-blue-100 rounded-2xl">
+                      <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                      </svg>
+                    </div>
+                    <span class="text-green-500 text-sm font-medium">+12%</span>
+                  </div>
+                  <h3 class="text-2xl font-black text-gray-900 mb-1">33</h3>
+                  <p class="text-gray-600 font-medium">今月の質問</p>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-100">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-emerald-100 rounded-2xl">
+                      <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                      </svg>
+                    </div>
+                    <span class="text-green-500 text-sm font-medium">+8%</span>
+                  </div>
+                  <h3 class="text-2xl font-black text-gray-900 mb-1">87</h3>
+                  <p class="text-gray-600 font-medium">専門家の回答</p>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-100">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-purple-100 rounded-2xl">
+                      <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                      </svg>
+                    </div>
+                    <span class="text-green-500 text-sm font-medium">+15%</span>
+                  </div>
+                  <h3 class="text-2xl font-black text-gray-900 mb-1">89%</h3>
+                  <p class="text-gray-600 font-medium">解決率</p>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-100">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-orange-100 rounded-2xl">
+                      <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <span class="text-green-500 text-sm font-medium">-23%</span>
+                  </div>
+                  <h3 class="text-2xl font-black text-gray-900 mb-1">1.2h</h3>
+                  <p class="text-gray-600 font-medium">平均回答時間</p>
+                </div>
+              </div>
+
+              <!-- 最近の質問 -->
+              <div class="mb-12">
+                <h2 class="text-3xl font-black text-gray-900 mb-8">最近の質問</h2>
+                <div id="recent-questions" class="space-y-6">
+                  <!-- JavaScriptで動的に生成 -->
+                </div>
+              </div>
+            </div>
+
+            <!-- 質問一覧ビュー -->
+            <div id="questions-view" class="content-section hidden">
+              <div class="mb-8">
+                <h2 class="text-3xl font-black text-gray-900 mb-4">全ての質問</h2>
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 mb-6">
+                  <div class="flex flex-wrap gap-4 items-center">
+                    <select id="category-filter" class="px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">全てのカテゴリー</option>
+                      <option value="injection">注射</option>
+                      <option value="blood-collection">採血</option>
+                      <option value="route-securing">ルート確保</option>
+                      <option value="arterial">動脈穿刺</option>
+                      <option value="others">その他</option>
+                    </select>
+                    <select id="sort-filter" class="px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="newest">新しい順</option>
+                      <option value="oldest">古い順</option>
+                      <option value="popular">人気順</option>
+                      <option value="answered">回答数順</option>
+                    </select>
+                    <button id="filter-btn" class="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors">
+                      フィルター適用
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="all-questions" class="space-y-6">
+                <!-- JavaScriptで動的に生成 -->
+              </div>
+            </div>
+
+            <!-- その他のビュー -->
+            <div id="trending-view" class="content-section hidden">
+              <h2 class="text-3xl font-black text-gray-900 mb-8">トレンド</h2>
+              <p class="text-gray-600">トレンドコンテンツは現在準備中です。</p>
+            </div>
+
+            <div id="guidelines-view" class="content-section hidden">
+              <h2 class="text-3xl font-black text-gray-900 mb-8">ガイドライン</h2>
+              <p class="text-gray-600">ガイドラインは現在準備中です。</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 質問投稿モーダル -->
+  <div id="question-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-black text-gray-900">新しい質問を投稿</h3>
+          <button id="close-modal" class="p-2 rounded-lg hover:bg-gray-100">
+            <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <form id="question-form" class="space-y-6">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">質問タイトル</label>
+            <input type="text" id="question-title" class="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="簡潔で分かりやすいタイトルを入力してください">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">カテゴリー</label>
+            <select id="question-category" class="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">カテゴリーを選択してください</option>
+              <option value="injection">注射</option>
+              <option value="blood-collection">採血</option>
+              <option value="route-securing">ルート確保</option>
+              <option value="arterial">動脈穿刺</option>
+              <option value="others">その他</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">質問内容</label>
+            <textarea id="question-content" rows="6" class="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="具体的な状況や困っていることを詳しく記載してください"></textarea>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button type="button" id="cancel-question" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-2xl hover:bg-gray-50 transition-colors">
+              キャンセル
+            </button>
+            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-lg">
+              質問を投稿
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // サンプルデータ
+    const sampleQuestions = [
+      {
+        id: 1,
+        title: "高齢者の採血で血管が見つけにくい時のコツは？",
+        content: "90歳の患者さんで、血管が細く脆弱で採血が困難です。どのような工夫をすればよいでしょうか？",
+        category: "blood-collection",
+        author: "田中 花子",
+        role: "看護師",
+        timeAgo: "2時間前",
+        likes: 12,
+        answers: 5,
+        isResolved: true,
+        tags: ["高齢者", "血管確保", "採血技術"]
+      },
+      {
+        id: 2,
+        title: "小児の筋肉注射で泣かせないためのテクニック",
+        content: "3歳児への筋肉注射で、できるだけ痛みを軽減し泣かせないようにしたいのですが、良い方法はありますか？",
+        category: "injection",
+        author: "佐藤 健",
+        role: "小児科医",
+        timeAgo: "4時間前",
+        likes: 8,
+        answers: 3,
+        isResolved: false,
+        tags: ["小児", "筋肉注射", "疼痛管理"]
+      },
+      {
+        id: 3,
+        title: "末梢静脈ルート確保の成功率を上げる方法",
+        content: "ICUで末梢静脈ルートがなかなか確保できない患者が多いです。成功率を上げるコツを教えてください。",
+        category: "route-securing",
+        author: "山田 太郎",
+        role: "ICU看護師",
+        timeAgo: "6時間前",
+        likes: 15,
+        answers: 7,
+        isResolved: true,
+        tags: ["末梢静脈", "ICU", "血管確保"]
+      },
+      {
+        id: 4,
+        title: "動脈血ガス採取時の合併症予防について",
+        content: "橈骨動脈からの動脈血ガス採取で、血腫形成を防ぐための注意点を教えてください。",
+        category: "arterial",
+        author: "鈴木 美穂",
+        role: "臨床検査技師",
+        timeAgo: "8時間前",
+        likes: 6,
+        answers: 4,
+        isResolved: false,
+        tags: ["動脈血ガス", "合併症", "橈骨動脈"]
+      },
+      {
+        id: 5,
+        title: "インスリン注射の適切な部位選択について",
+        content: "糖尿病患者へのインスリン注射で、注射部位のローテーションについて詳しく教えてください。",
+        category: "injection",
+        author: "高橋 直子",
+        role: "内分泌科医",
+        timeAgo: "10時間前",
+        likes: 11,
+        answers: 6,
+        isResolved: true,
+        tags: ["インスリン", "糖尿病", "注射部位"]
+      },
+      {
+        id: 6,
+        title: "真空採血管の正しい順序は？",
+        content: "複数項目の採血を行う際の採血管の順序について、最新のガイドラインを教えてください。",
+        category: "blood-collection",
+        author: "伊藤 正男",
+        role: "臨床検査技師",
+        timeAgo: "12時間前",
+        likes: 9,
+        answers: 2,
+        isResolved: false,
+        tags: ["採血管", "順序", "ガイドライン"]
+      }
+    ];
+
+    let currentFilter = '';
+    let currentSort = 'newest';
+
+    // DOM要素
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const closeSidebar = document.getElementById('close-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const navItems = document.querySelectorAll('.nav-item');
+    const categoryItems = document.querySelectorAll('.category-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    const searchInput = document.getElementById('search-input');
+    const newQuestionBtn = document.getElementById('new-question-btn');
+    const heroQuestionBtn = document.getElementById('hero-question-btn');
+    const questionModal = document.getElementById('question-modal');
+    const closeModal = document.getElementById('close-modal');
+    const cancelQuestion = document.getElementById('cancel-question');
+    const questionForm = document.getElementById('question-form');
+
+    // サイドバーの開閉
+    function openSidebar() {
+      sidebar.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+    }
+
+    function closeSidebarFunc() {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    }
+
+    mobileMenuBtn.addEventListener('click', openSidebar);
+    closeSidebar.addEventListener('click', closeSidebarFunc);
+    overlay.addEventListener('click', closeSidebarFunc);
+
+    // ナビゲーション
+    function showSection(sectionId) {
+      contentSections.forEach(section => {
+        section.classList.add('hidden');
+      });
+      document.getElementById(sectionId + '-view').classList.remove('hidden');
+      
+      navItems.forEach(item => {
+        item.classList.remove('bg-blue-50', 'text-blue-600');
+        item.classList.add('text-gray-700', 'hover:bg-gray-50');
+      });
+      
+      const activeItem = document.querySelector(`[data-section="${sectionId}"]`);
+      if (activeItem) {
+        activeItem.classList.add('bg-blue-50', 'text-blue-600');
+        activeItem.classList.remove('text-gray-700', 'hover:bg-gray-50');
+      }
+    }
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const section = item.getAttribute('data-section');
+        showSection(section);
+        closeSidebarFunc();
+      });
+    });
+
+    // カテゴリーフィルター
+    categoryItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const category = item.getAttribute('data-category');
+        currentFilter = category;
+        showSection('questions');
+        filterQuestions();
+        closeSidebarFunc();
+      });
+    });
+
+    // 質問カードの生成
+    function createQuestionCard(question) {
+      const categoryColors = {
+        'injection': 'bg-red-100 text-red-600',
+        'blood-collection': 'bg-blue-100 text-blue-600',
+        'route-securing': 'bg-emerald-100 text-emerald-600',
+        'arterial': 'bg-purple-100 text-purple-600',
+        'others': 'bg-gray-100 text-gray-600'
+      };
+
+      const categoryNames = {
+        'injection': '注射',
+        'blood-collection': '採血',
+        'route-securing': 'ルート確保',
+        'arterial': '動脈穿刺',
+        'others': 'その他'
+      };
+
+      return `
+        <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-100">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center space-x-3">
+              <div class="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                <span class="text-white font-bold">${question.author.charAt(0)}</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-gray-900">${question.author}</h4>
+                <p class="text-sm text-gray-500">${question.role}</p>
+              </div>
+            </div>
+            <span class="text-sm text-gray-500">${question.timeAgo}</span>
+          </div>
+          
+          <div class="mb-4">
+            <span class="px-3 py-1 ${categoryColors[question.category]} text-xs font-bold rounded-xl">
+              ${categoryNames[question.category]}
+            </span>
+          </div>
+
+          <h3 class="text-xl font-bold text-gray-900 mb-3 leading-tight">${question.title}</h3>
+          <p class="text-gray-600 mb-4 leading-relaxed">${question.content}</p>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            ${question.tags.map(tag => `
+              <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg">#${tag}</span>
+            `).join('')}
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+              <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                <span class="font-medium">${question.likes}</span>
+              </button>
+              
+              <span class="flex items-center space-x-2 text-gray-500">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <span class="font-medium">${question.answers}件の回答</span>
+              </span>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              ${question.isResolved ? `
+                <span class="flex items-center space-x-1 text-green-600">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span class="text-sm font-medium">解決済み</span>
+                </span>
+              ` : ''}
+              
+              <button class="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-lg">
+                詳細を見る
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 質問の表示
+    function displayQuestions(questions, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = questions.map(createQuestionCard).join('');
+    }
+
+    // フィルタリング
+    function filterQuestions() {
+      let filtered = sampleQuestions;
+      
+      if (currentFilter) {
+        filtered = filtered.filter(q => q.category === currentFilter);
+      }
+      
+      // ソート
+      filtered.sort((a, b) => {
+        switch (currentSort) {
+          case 'oldest':
+            return a.id - b.id;
+          case 'popular':
+            return b.likes - a.likes;
+          case 'answered':
+            return b.answers - a.answers;
+          case 'newest':
+          default:
+            return b.id - a.id;
+        }
+      });
+      
+      displayQuestions(filtered, 'all-questions');
+    }
+
+    // 検索機能
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = sampleQuestions.filter(q => 
+        q.title.toLowerCase().includes(query) ||
+        q.content.toLowerCase().includes(query) ||
+        q.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+      displayQuestions(filtered, 'recent-questions');
+    });
+
+    // フィルター適用
+    document.getElementById('filter-btn').addEventListener('click', () => {
+      const categoryFilter = document.getElementById('category-filter').value;
+      const sortFilter = document.getElementById('sort-filter').value;
+      currentFilter = categoryFilter;
+      currentSort = sortFilter;
+      filterQuestions();
+    });
+
+    // モーダル制御
+    function openModal() {
+      questionModal.classList.remove('hidden');
+    }
+
+    function closeModalFunc() {
+      questionModal.classList.add('hidden');
+      questionForm.reset();
+    }
+
+    newQuestionBtn.addEventListener('click', openModal);
+    heroQuestionBtn.addEventListener('click', openModal);
+    closeModal.addEventListener('click', closeModalFunc);
+    cancelQuestion.addEventListener('click', closeModalFunc);
+
+    // 質問投稿
+    questionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const title = document.getElementById('question-title').value;
+      const category = document.getElementById('question-category').value;
+      const content = document.getElementById('question-content').value;
+      
+      if (title && category && content) {
+        const newQuestion = {
+          id: sampleQuestions.length + 1,
+          title: title,
+          content: content,
+          category: category,
+          author: "あなた",
+          role: "投稿者",
+          timeAgo: "たった今",
+          likes: 0,
+          answers: 0,
+          isResolved: false,
+          tags: ["新規投稿"]
+        };
+        
+        sampleQuestions.unshift(newQuestion);
+        displayQuestions(sampleQuestions.slice(0, 3), 'recent-questions');
+        filterQuestions();
+        closeModalFunc();
+        
+        alert('質問が投稿されました！');
+      }
+    });
+
+    // 初期化
+    displayQuestions(sampleQuestions.slice(0, 3), 'recent-questions');
+    filterQuestions();
+
+    // レスポンシブ対応
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 1024) {
+        overlay.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

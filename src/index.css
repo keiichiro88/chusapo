@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   アクセシビリティ：グローバルフォーカススタイル
+   ========================================================================== */
+
+/* キーボードフォーカス時のみ表示される共通フォーカスリング */
+@layer base {
+  /* ボタンやリンクのフォーカスリング（キーボードのみ） */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible {
+    @apply outline-none ring-2 ring-blue-500/50 ring-offset-2;
+  }
+
+  /* 入力フィールドは通常のfocusで表示 */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply outline-none ring-2 ring-blue-500/20 border-blue-500;
+  }
+
+  /* スクリーンリーダー用のスキップリンク */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    @apply sr-only;
+  }
+}
+
+/* ハートがふわふわと上昇するアニメーション */
+@keyframes naturalSparkleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-20px) translateX(3px) scale(1.0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-45px) translateX(-2px) scale(1.1);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(-75px) translateX(4px) scale(1.0);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-105px) translateX(-1px) scale(0.9);
+  }
+  75% {
+    opacity: 0.6;
+    transform: translateY(-135px) translateX(2px) scale(0.8);
+  }
+  90% {
+    opacity: 0.3;
+    transform: translateY(-165px) translateX(-1px) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-190px) translateX(0) scale(0.3);
+  }
+}
+
+/* ハートがぷくっと膨らんで飛び出して戻ってくるアニメーション */
+@keyframes heartPulse {
+  0% {
+    transform: scale(1) translateY(0);
+    filter: none;
+  }
+  8% {
+    transform: scale(1.3) translateY(0);
+    filter: hue-rotate(25deg) saturate(1.4);
+  }
+  20% {
+    transform: scale(2.5) translateY(-20px);
+    filter: hue-rotate(50deg) saturate(1.8) brightness(1.3);
+  }
+  30% {
+    transform: scale(2.5) translateY(-30px);
+    filter: hue-rotate(50deg) saturate(1.8) brightness(1.3);
+  }
+  50% {
+    transform: scale(1.5) translateY(-20px);
+    filter: hue-rotate(35deg) saturate(1.5) brightness(1.2);
+  }
+  70% {
+    transform: scale(1.1) translateY(-5px);
+    filter: hue-rotate(15deg) saturate(1.2);
+  }
+  80% {
+    transform: scale(1.0) translateY(0);
+    filter: none;
+  }
+  100% {
+    transform: scale(1.0) translateY(0);
+    filter: none;
+  }
+}
+
+/* 感謝の🙏アニメーション */
+@keyframes gratitudePulse {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: none;
+  }
+  10% {
+    transform: scale(1.1) rotate(-2deg);
+    filter: sepia(0.3) saturate(1.2) hue-rotate(15deg);
+  }
+  25% {
+    transform: scale(1.4) rotate(2deg);
+    filter: sepia(0.5) saturate(1.5) hue-rotate(30deg) brightness(1.1);
+  }
+  40% {
+    transform: scale(1.6) rotate(-1deg);
+    filter: sepia(0.7) saturate(1.8) hue-rotate(45deg) brightness(1.2);
+  }
+  55% {
+    transform: scale(1.4) rotate(1deg);
+    filter: sepia(0.5) saturate(1.5) hue-rotate(30deg) brightness(1.1);
+  }
+  70% {
+    transform: scale(1.2) rotate(-0.5deg);
+    filter: sepia(0.3) saturate(1.3) hue-rotate(20deg);
+  }
+  85% {
+    transform: scale(1.05) rotate(0.5deg);
+    filter: sepia(0.1) saturate(1.1) hue-rotate(10deg);
+  }
+  100% {
+    transform: scale(1.1) rotate(0deg);
+    filter: sepia(0.2) saturate(1.2) hue-rotate(15deg);
+  }
+}

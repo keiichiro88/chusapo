@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedConsult - サイドバー付き</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/lucide-react@0.344.0/dist/umd/lucide-react.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const { 
+      Home, MessageCircle, TrendingUp, BookOpen, Settings, Users, Award, 
+      HelpCircle, Bell, BarChart3, Heart, Stethoscope, Activity, Calendar, 
+      X, Menu, Plus, Sparkles 
+    } = lucide;
+
+    // Sidebar Component
+    const Sidebar = ({ isOpen, onToggle, onNavigate, activeSection }) => {
+      const menuItems = [
+        { id: 'home', label: 'ホーム', icon: Home, badge: null },
+        { id: 'questions', label: '質問一覧', icon: MessageCircle, badge: '12' },
+        { id: 'trending', label: 'トレンド', icon: TrendingUp, badge: null },
+        { id: 'guidelines', label: 'ガイドライン', icon: BookOpen, badge: null },
+        { id: 'experts', label: '専門家', icon: Award, badge: null },
+        { id: 'schedule', label: 'スケジュール', icon: Calendar, badge: null },
+      ];
+
+      const categoryItems = [
+        { id: 'venipuncture', label: '静脈穿刺', icon: Stethoscope, color: 'text-red-600' },
+        { id: 'iv-insertion', label: 'IV挿入', icon: Activity, color: 'text-blue-600' },
+        { id: 'arterial', label: '動脈穿刺', icon: Heart, color: 'text-emerald-600' },
+        { id: 'pediatric', label: '小児技術', icon: Users, color: 'text-purple-600' },
+      ];
+
+      const bottomItems = [
+        { id: 'stats', label: '統計情報', icon: BarChart3 },
+        { id: 'notifications', label: '通知設定', icon: Bell },
+        { id: 'help', label: 'ヘルプ', icon: HelpCircle },
+        { id: 'settings', label: '設定', icon: Settings },
+      ];
+
+      return (
+        <>
+          {/* モバイル用オーバーレイ */}
+          {isOpen && (
+            <div 
+              className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={onToggle}
+            />
+          )}
+          
+          {/* サイドバー */}
+          <aside className={`
+            fixed lg:sticky top-0 left-0 h-screen
+            bg-white border-r border-gray-200 shadow-lg lg:shadow-none
+            w-72 lg:w-64 xl:w-72
+            transform transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            z-50 lg:z-30
+            overflow-y-auto
+          `}>
+            {/* ヘッダー */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <Stethoscope className="h-6 w-6 text-white" />
+                  </div>
+                  <h2 className="text-xl font-black text-gray-900">MedConsult</h2>
+                </div>
+                <button
+                  onClick={onToggle}
+                  className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {/* メインナビゲーション */}
+            <nav className="p-4">
+              <div className="space-y-1">
+                {menuItems.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => onNavigate(item.id)}
+                    className={`
+                      w-full flex items-center justify-between p-3 rounded-xl
+                      transition-all duration-200
+                      ${activeSection === item.id 
+                        ? 'bg-blue-50 text-blue-600' 
+                        : 'text-gray-700 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <item.icon className={`h-5 w-5 ${
+                        activeSection === item.id ? 'text-blue-600' : 'text-gray-500'
+                      }`} />
+                      <span className="font-medium">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-600 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </nav>
+
+            {/* カテゴリー */}
+            <div className="px-4 pb-4">
+              <h3 className="px-3 mb-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                カテゴリー
+              </h3>
+              <div className="space-y-1">
+                {categoryItems.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => onNavigate(item.id)}
+                    className={`
+                      w-full flex items-center space-x-3 p-3 rounded-xl
+                      transition-all duration-200
+                      ${activeSection === item.id 
+                        ? 'bg-gray-100' 
+                        : 'hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <item.icon className={`h-5 w-5 ${item.color}`} />
+                    <span className="font-medium text-gray-700">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 統計情報サマリー */}
+            <div className="mx-4 p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+              <h4 className="font-bold text-gray-900 mb-3">今日の活動</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">新しい質問</span>
+                  <span className="font-bold text-gray-900">24</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">回答済み</span>
+                  <span className="font-bold text-green-600">18</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">解決率</span>
+                  <span className="font-bold text-blue-600">75%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* プロフィール */}
+            <div className="p-4 border-t border-gray-200 mt-4">
+              <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
+                <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold">山田</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">山田 太郎</p>
+                  <p className="text-sm text-gray-500">循環器内科医</p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </>
+      );
+    };
+
+    // Main App Component
+    const App = () => {
+      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [activeSection, setActiveSection] = useState('home');
+
+      const handleNavigate = (section) => {
+        setActiveSection(section);
+        setSidebarOpen(false);
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+          {/* ヘッダー */}
+          <header className="bg-white shadow-sm border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+                  >
+                    <Menu className="h-6 w-6 text-gray-700" />
+                  </button>
+                  <h1 className="text-2xl font-black text-gray-900">MedConsult</h1>
+                </div>
+              </div>
+            </div>
+          </header>
+          
+          <div className="flex">
+            <Sidebar 
+              isOpen={sidebarOpen}
+              onToggle={() => setSidebarOpen(!sidebarOpen)}
+              onNavigate={handleNavigate}
+              activeSection={activeSection}
+            />
+            
+            <main className="flex-1 px-6 lg:px-8 py-12">
+              <div className="max-w-7xl mx-auto">
+                {/* ウェルカムセクション */}
+                <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-12 mb-12 text-white shadow-2xl relative overflow-hidden">
+                  <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between">
+                    <div className="mb-8 lg:mb-0">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <Sparkles className="h-8 w-8 text-yellow-300" />
+                        <h1 className="text-4xl lg:text-5xl font-black">MedConsultへようこそ</h1>
+                      </div>
+                      <p className="text-blue-100 text-xl font-medium leading-relaxed">
+                        穿刺技術と手技のプロフェッショナル相談プラットフォーム
+                      </p>
+                    </div>
+                    <button className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black hover:bg-blue-50 transition-all duration-200 flex items-center space-x-3 shadow-xl hover:shadow-2xl hover:scale-105">
+                      <Plus className="h-6 w-6" />
+                      <span>質問を投稿</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* コンテンツエリア */}
+                <div className="text-center py-20">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    サイドバーが正常に表示されています！
+                  </h2>
+                  <p className="text-gray-600 text-lg">
+                    左側のサイドバーから各機能にアクセスできます。
+                  </p>
+                  <p className="text-gray-500 mt-2">
+                    現在のセクション: <span className="font-bold text-blue-600">{activeSection}</span>
+                  </p>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      );
+    };
+
+    // Render the app
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
