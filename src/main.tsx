@@ -2,7 +2,6 @@ import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { SupabaseAuthProvider } from './hooks/useSupabaseAuth';
 import { ToastProvider } from './contexts/ToastContext';
 import { initSentry, captureError } from './lib/sentry';
 import { initAnalytics } from './lib/analytics';
@@ -88,11 +87,9 @@ try {
   root.render(
     <StrictMode>
       <ErrorBoundary>
-        <SupabaseAuthProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-        </SupabaseAuthProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </ErrorBoundary>
     </StrictMode>
   );

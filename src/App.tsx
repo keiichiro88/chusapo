@@ -24,6 +24,7 @@ import QuestionDetail from './components/QuestionDetail';
 import SearchAndFilter, { FilterOptions } from './components/SearchAndFilter';
 import AnswerQuestions from './components/AnswerQuestions';
 import Guidelines from './components/Guidelines';
+import QuizApp from './components/quiz/QuizApp';
 import UserSelector from './components/UserSelector';
 import UserProfile from './components/profile/UserProfile';
 import EditProfileModal from './components/profile/EditProfileModal';
@@ -369,6 +370,10 @@ function App() {
             />
           ) : activeSection === 'guidelines' ? (
             <Guidelines
+              onBack={() => setActiveSection('home')}
+            />
+          ) : activeSection === 'quiz' ? (
+            <QuizApp
               onBack={() => setActiveSection('home')}
             />
           ) : activeSection === 'about-chusapo' ? (

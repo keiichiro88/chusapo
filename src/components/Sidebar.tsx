@@ -5,6 +5,7 @@ import {
   HelpCircle,
   Activity,
   X,
+  Brain,
   Syringe,
   TestTube,
   Cable,
@@ -30,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, onNavigate, activeS
   const menuItems = [
     { id: 'home', label: 'ホーム', icon: Home, badge: null },
     { id: 'answer-questions', label: '質問に回答', icon: HelpCircle, badge: null },
+    { id: 'quiz', label: '学習クイズ', icon: Brain, badge: null },
     { id: 'profile', label: 'プロフィール', icon: User, badge: null },
     { id: 'about-chusapo', label: 'チューサポについて', icon: Heart, badge: null },
     { id: 'guidelines', label: 'ガイドライン', icon: BookOpen, badge: null },
