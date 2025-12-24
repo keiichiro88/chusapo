@@ -862,22 +862,52 @@ const LessonRunner: React.FC<{
   const progressPercent = calcPercent(step, Math.max(1, total));
   const selected = selectedIndex;
 
+  // レッスンIDからアイキャッチ画像のパスを取得
+  const lessonEyecatchMap: Record<string, string> = {
+    'lesson-1': '/ Lesson１.png',
+    'lesson-2': '/ Lesson２.png',
+    'lesson-3': '/ Lesson３.png',
+    'lesson-4': '/ Lesson４.png',
+    'lesson-5': '/ Lesson５.png',
+    'lesson-6': '/ Lesson６.png',
+    'lesson-7': '/ Lesson７.png',
+    'lesson-8': '/ Lesson８.png',
+    'lesson-9': '/ Lesson９.png',
+    'lesson-10': '/ Lesson１０.png',
+    'lesson-11': '/ Lesson１１.png',
+  };
+  const lessonEyecatch = lessonEyecatchMap[lesson.id];
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="text-xl font-black text-gray-900 truncate">{lesson.title}</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            {step + 1}/{total} 問目
-          </p>
+    <div className="space-y-4">
+      {/* レッスンアイキャッチ画像 */}
+      {lessonEyecatch && (
+        <div className="w-full">
+          <img
+            src={lessonEyecatch}
+            alt={`${lesson.title} アイキャッチ`}
+            className="w-full max-w-3xl mx-auto rounded-2xl shadow-sm object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
-        <button
-          onClick={onExit}
-          className="px-3 py-2 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-50"
-        >
-          終了
-        </button>
-      </div>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-xl font-black text-gray-900 truncate">{lesson.title}</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {step + 1}/{total} 問目
+            </p>
+          </div>
+          <button
+            onClick={onExit}
+            className="px-3 py-2 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-50"
+          >
+            終了
+          </button>
+        </div>
 
       {/* 進捗バー */}
       <div className="mt-4">
@@ -973,31 +1003,55 @@ const LessonRunner: React.FC<{
             </div>
           )}
 
+          {/* Lesson 2 の特定問題用の挿絵（解説の補助） */}
+          {lesson.id === 'lesson-2' && ['q2-1', 'q2-2', 'q2-3', 'q2-6', 'q2-10'].includes(currentQuestion.id) && (
+            <div className="mb-4">
+              <img
+                src={
+                  currentQuestion.id === 'q2-1'
+                    ? '/quiz-lesson2-q1-illust.png'
+                    : currentQuestion.id === 'q2-2'
+                    ? '/quiz-lesson2-q2-illust.png'
+                    : currentQuestion.id === 'q2-3'
+                    ? '/quiz-lesson2-q3-illust.png'
+                    : currentQuestion.id === 'q2-6'
+                    ? '/quiz-lesson2-q6-illust.png'
+                    : '/quiz-lesson2-q10-illust.png'
+                }
+                alt={`Lesson 2-${currentQuestion.id.replace('q2-', '')} 解説の挿絵`}
+                className="w-full max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white shadow-sm object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          )}
+
           <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{currentQuestion.explanation}</p>
         </div>
       )}
 
-      {/* ナビゲーション */}
-      <div className="mt-6 flex items-center justify-between gap-3">
-        <button
-          onClick={goPrev}
-          disabled
-          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed"
-          title="MVPでは「戻る」は未対応です"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>戻る</span>
-        </button>
-        <button
-          onClick={goNext}
-          disabled={!isAnswered}
-          className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-colors ${
-            isAnswered ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          <span>{step + 1 >= total ? '結果を見る' : '次へ'}</span>
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* ナビゲーション */}
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <button
+            onClick={goPrev}
+            disabled
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed"
+            title="MVPでは「戻る」は未対応です"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>戻る</span>
+          </button>
+          <button
+            onClick={goNext}
+            disabled={!isAnswered}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-colors ${
+              isAnswered ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <span>{step + 1 >= total ? '結果を見る' : '次へ'}</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

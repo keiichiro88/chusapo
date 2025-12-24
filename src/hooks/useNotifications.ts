@@ -27,10 +27,10 @@ export interface Notification {
  * 通知管理フック
  */
 export const useNotifications = () => {
-  const { supabaseUser } = useSupabaseAuth();
+  const { supabaseUser, isLoading: authLoading } = useSupabaseAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**

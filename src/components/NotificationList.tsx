@@ -3,6 +3,8 @@ import { Bell, MessageCircle, Heart, Award, Info, Check, Trash2, Loader2 } from 
 import { useNotifications, Notification } from '../hooks/useNotifications';
 
 interface NotificationListProps {
+  isOpen?: boolean;
+  onClose?: () => void;
   onNotificationClick?: (notification: Notification) => void;
 }
 
@@ -38,7 +40,7 @@ const formatTimeAgo = (dateString: string): string => {
   return date.toLocaleDateString('ja-JP');
 };
 
-export const NotificationList: React.FC<NotificationListProps> = ({ onNotificationClick }) => {
+export const NotificationList: React.FC<NotificationListProps> = ({ isOpen = true, onClose, onNotificationClick }) => {
   const {
     notifications,
     unreadCount,
@@ -55,6 +57,11 @@ export const NotificationList: React.FC<NotificationListProps> = ({ onNotificati
     }
     onNotificationClick?.(notification);
   };
+
+  // isOpenがfalseの場合は何も表示しない
+  if (!isOpen) {
+    return null;
+  }
 
   if (isLoading) {
     return (

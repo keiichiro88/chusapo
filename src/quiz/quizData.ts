@@ -120,8 +120,8 @@ export const quizData: Lesson[] = [
   },
   {
     id: 'lesson-2',
-    title: 'Lesson 2 血管選びの極意（p.11-28）',
-    description: '成功率を高めるための血管の選び方、怒張させるテクニック、触診の方法を学びます。',
+    title: 'Lesson 2 穿刺する前に押さえておきたいこと（p.11-28）',
+    description: '穿刺時の適切な姿勢、効果的な駆血帯の巻き方、確実な静脈血管の固定手技について学びます。',
     questions: [
       {
         id: 'q2-1',
@@ -136,94 +136,28 @@ export const quizData: Lesson[] = [
       },
       {
         id: 'q2-2',
-        questionText: '血管を怒張させる（浮き出させる）ために有効な方法はどれですか？',
+        questionText: '穿刺者が右利きの場合、患者さんの「左腕」に穿刺する際にアプローチしやすくする工夫は？',
         options: [
-          { id: 'a', text: '腕を心臓より高く上げる', isCorrect: false },
-          { id: 'b', text: '穿刺部位を冷やす', isCorrect: false },
-          { id: 'c', text: '穿刺部位を軽く叩く（タッピング）', isCorrect: true },
-          { id: 'd', text: '深呼吸を止める', isCorrect: false },
+          { id: 'a', text: '患者さんの上肢を外転（外側に開く）させる', isCorrect: true },
+          { id: 'b', text: '患者さんに身体をひねってもらう', isCorrect: false },
+          { id: 'c', text: '自分が無理な体勢をとる', isCorrect: false },
+          { id: 'd', text: 'ベッド柵を乗り越える', isCorrect: false },
         ],
-        explanation: '軽くタッピングすることで、血管平滑筋の反射や局所的なヒスタミン遊離により血管が拡張します。ただし強く叩きすぎると攣縮して細くなるので注意が必要です。(書籍 p.15 参照)',
+        explanation: '右利きの看護師が左側のベッドサイドから左腕に穿刺する場合、そのままでは窮屈になります。上肢を少し外転してもらうことで、位置関係が調整され、穿刺しやすくなります。(書籍 p.15 参照)',
       },
       {
         id: 'q2-3',
-        questionText: '「見えない血管」を探すための最も重要な技術は？',
+        questionText: '駆血帯を巻く適切な位置は、穿刺予定部位からどのくらい中枢側（心臓側）ですか？',
         options: [
-          { id: 'a', text: '聴診', isCorrect: false },
-          { id: 'b', text: '視診', isCorrect: false },
-          { id: 'c', text: '触診', isCorrect: true },
-          { id: 'd', text: '打診', isCorrect: false },
+          { id: 'a', text: '直上（すぐ上）', isCorrect: false },
+          { id: 'b', text: '7〜10cm', isCorrect: true },
+          { id: 'c', text: '20cm以上', isCorrect: false },
+          { id: 'd', text: '手首', isCorrect: false },
         ],
-        explanation: '深部にある見えない血管は、指先の感覚（触診）で見つけます。指の腹で軽く押して、跳ね返ってくる「弾力」を感じ取ることが重要です。(書籍 p.18 参照)',
+        explanation: '穿刺部位から約7〜10cm中枢側に巻くのが適切です。近すぎると血管がつぶれて穿刺しにくくなり、遠すぎると怒張効果が弱まります。(書籍 p.18 参照)',
       },
       {
         id: 'q2-4',
-        questionText: '高齢者の血管の特徴として正しいものは？',
-        options: [
-          { id: 'a', text: '血管壁が厚く硬い', isCorrect: false },
-          { id: 'b', text: '血管が動きやすく（逃げやすく）、脆い', isCorrect: true },
-          { id: 'c', text: '皮膚に張りがある', isCorrect: false },
-          { id: 'd', text: '血管が見えにくい', isCorrect: false },
-        ],
-        explanation: '高齢者の血管は皮下組織の減少により固定が甘く「逃げやすい」こと、血管壁が脆く破れやすいことが特徴です。しっかりとした固定と慎重な操作が必要です。(書籍 p.22 参照)',
-      },
-      {
-        id: 'q2-5',
-        questionText: '穿刺部位として避けるべき場所は？',
-        options: [
-          { id: 'a', text: '前腕内側', isCorrect: false },
-          { id: 'b', text: '手背', isCorrect: false },
-          { id: 'c', text: 'シャント肢（透析用）', isCorrect: true },
-          { id: 'd', text: '肘窩', isCorrect: false },
-        ],
-        explanation: '透析患者さんのシャントがある腕（シャント肢）や、麻痺則、乳がん術後の患側などは、リンパ浮腫や感染、血管閉塞のリスクがあるため、原則として穿刺禁止です。(書籍 p.26 参照)',
-      },
-      {
-        id: 'q2-6',
-        questionText: '穿刺者が安定した手技を行うために推奨される姿勢（ポジショニング）は？',
-        options: [
-          { id: 'a', text: '立ったまま中腰で行う', isCorrect: false },
-          { id: 'b', text: '無理な体勢で覗き込む', isCorrect: false },
-          { id: 'c', text: '脇を締め、椅子に座るかベッドの高さを調整して無理のない姿勢をとる', isCorrect: true },
-          { id: 'd', text: '片足立ちで行う', isCorrect: false },
-        ],
-        explanation: '不安定な姿勢は手ブレの原因になります。自分がリラックスして安定した姿勢をとれるよう、ベッドの高さを調整したり椅子を使用することが重要です。(書籍 p.12 参照)',
-      },
-      {
-        id: 'q2-7',
-        questionText: 'ラテックスアレルギー（天然ゴムアレルギー）の患者さんに使用すべき駆血帯は？',
-        options: [
-          { id: 'a', text: '通常のゴム管', isCorrect: false },
-          { id: 'b', text: 'ラテックスフリー（ノンラテックス）の駆血帯', isCorrect: true },
-          { id: 'c', text: '駆血帯は使用しない', isCorrect: false },
-          { id: 'd', text: '布で縛る', isCorrect: false },
-        ],
-        explanation: 'ラテックスアレルギーの患者さんには、アナフィラキシーショックを防ぐため、必ずラテックスフリーの製品を使用します。問診での確認が必須です。(書籍 p.18 関連)',
-      },
-      {
-        id: 'q2-8',
-        questionText: '前腕の血管を選ぶ際、手首側から肘側に向かってどのように走行している血管が良いとされますか？',
-        options: [
-          { id: 'a', text: '分岐して細くなっている血管', isCorrect: false },
-          { id: 'b', text: '蛇行して戻っている血管', isCorrect: false },
-          { id: 'c', text: '他の血管と合流して太くなっている血管', isCorrect: true },
-          { id: 'd', text: '途中で消えている血管', isCorrect: false },
-        ],
-        explanation: '静脈は末梢から中枢へ向かって合流し太くなっていきます。合流部は流量も多く安定しているため、狙い目の一つです。(書籍 p.13 参照)',
-      },
-      {
-        id: 'q2-9',
-        questionText: 'ホットパックなどで血管を温めて怒張させる際、特に注意すべきことは？',
-        options: [
-          { id: 'a', text: '血管が破裂しないか', isCorrect: false },
-          { id: 'b', text: '低温火傷（特に高齢者や知覚麻痺のある方）', isCorrect: true },
-          { id: 'c', text: '温めすぎてのぼせないか', isCorrect: false },
-          { id: 'd', text: '電気代', isCorrect: false },
-        ],
-        explanation: '感覚が鈍くなっている患者さんでは、熱さを感じにくく低温火傷を起こすリスクがあります。タオルで包むなどして温度管理に注意します。(書籍 p.15 参照)',
-      },
-      {
-        id: 'q2-10',
         questionText: '動脈血流を遮断せず、静脈だけを怒張させる適切な駆血圧の目安は？',
         options: [
           { id: 'a', text: '橈骨動脈の拍動が消失する強さ', isCorrect: false },
@@ -231,39 +165,43 @@ export const quizData: Lesson[] = [
           { id: 'c', text: '痛みを伴うほどの強さ', isCorrect: false },
           { id: 'd', text: '皮膚が変色するほどの強さ', isCorrect: false },
         ],
-        explanation: '駆血の目的は静脈還流を止めることです。動脈まで止めてしまうと末梢に血が行かず血管が虚脱します。動脈の拍動が触れる強さが適切です。(書籍 p.20 参照)',
+        explanation: '駆血の目的は静脈還流を止めることです。動脈まで止めてしまうと末梢に血が行かず血管が虚脱します。動脈の拍動が触れる強さが適切です。(書籍 p.21 参照)',
       },
-    ],
-  },
-  {
-    id: 'lesson-3',
-    title: 'Lesson 3 駆血と固定のテクニック（p.29-42）',
-    description: '適切な駆血帯の巻き方と、痛みを軽減し成功率を上げる「皮膚の固定」について学びます。',
-    questions: [
       {
-        id: 'q3-1',
-        questionText: '駆血帯を巻く適切な位置は、穿刺予定部位からどのくらい中枢側（心臓側）ですか？',
+        id: 'q2-5',
+        questionText: '駆血帯の種類として、著者が推奨しているタイプとその理由は？',
         options: [
-          { id: 'a', text: '直上（すぐ上）', isCorrect: false },
-          { id: 'b', text: '5〜10cm', isCorrect: true },
-          { id: 'c', text: '20cm以上', isCorrect: false },
-          { id: 'd', text: '手首', isCorrect: false },
+          { id: 'a', text: 'チューブ型（皮膚にくい込みやすく固定が強い）', isCorrect: false },
+          { id: 'b', text: 'バンド型（皮膚への負担が少なく、ワンタッチで操作できる）', isCorrect: true },
+          { id: 'c', text: '紐（安価である）', isCorrect: false },
+          { id: 'd', text: '血圧計のマンシェット（圧が正確）', isCorrect: false },
         ],
-        explanation: '穿刺部位から5〜10cm程度上腕側に巻くのが適切です。近すぎると血管がつぶれて穿刺しにくくなり、遠すぎると怒張効果が弱まります。(書籍 p.30 参照)',
+        explanation: 'バンド型は幅広で皮膚に食い込みにくく、痛みやスキンテア（皮膚裂傷）のリスクを減らせます。また、リリースボタンで簡単に外せるため操作性も優れています。(書籍 p.22 参照)',
       },
       {
-        id: 'q3-2',
-        questionText: '痛くない駆血帯の外し方として推奨されるのは？',
+        id: 'q2-6',
+        questionText: '高齢者など皮膚が脆弱な患者さんに駆血帯を巻く際、スキンテア（皮膚裂傷）を防ぐための工夫は？',
         options: [
-          { id: 'a', text: '一気にパチンと外す', isCorrect: false },
-          { id: 'b', text: '皮膚を挟まないように指を添えて、ゆっくり緩める', isCorrect: true },
-          { id: 'c', text: 'ハサミで切る', isCorrect: false },
-          { id: 'd', text: '患者さんに外してもらう', isCorrect: false },
+          { id: 'a', text: 'できるだけきつく巻く', isCorrect: false },
+          { id: 'b', text: '寝衣（服）の上から巻く、またはタオルなどを当てて保護する', isCorrect: true },
+          { id: 'c', text: '駆血帯を使用しない', isCorrect: false },
+          { id: 'd', text: '粘着テープで固定する', isCorrect: false },
         ],
-        explanation: 'ゴムバンドなどを勢いよく外すと皮膚を弾いて痛みを伴います。ロックを外す際は指を添えて衝撃を和らげる配慮が必要です。(書籍 p.33 参照)',
+        explanation: '皮膚が薄い高齢者では、駆血帯の摩擦や圧力で皮膚が剥離することがあります。直接皮膚に巻かず、衣服の上や保護布の上から巻くことで予防します。(書籍 p.22 参照)',
       },
       {
-        id: 'q3-3',
+        id: 'q2-7',
+        questionText: '駆血時間は原則として何分以内にするのが望ましいですか？',
+        options: [
+          { id: 'a', text: '1分以内', isCorrect: true },
+          { id: 'b', text: '3分以内', isCorrect: false },
+          { id: 'c', text: '5分以内', isCorrect: false },
+          { id: 'd', text: '10分以内', isCorrect: false },
+        ],
+        explanation: '長時間駆血すると、血液濃縮により検査値（カリウムやタンパク質など）に影響が出たり、しびれや点状出血の原因になります。原則1分以内を目安に行います。(書籍 p.23 参照)',
+      },
+      {
+        id: 'q2-8',
         questionText: '穿刺時の「皮膚の固定（伸展）」の主な目的は？',
         options: [
           { id: 'a', text: '血管を温めるため', isCorrect: false },
@@ -271,10 +209,10 @@ export const quizData: Lesson[] = [
           { id: 'c', text: '血管が逃げるのを防ぎ、皮膚を緊張させて針を刺さりやすくするため', isCorrect: true },
           { id: 'd', text: '駆血の効果を高めるため', isCorrect: false },
         ],
-        explanation: '親指で皮膚を手前（末梢側）に引くことで、血管を固定して逃げにくくすると同時に、皮膚にテンションをかけて針がスパッと入るようにします。これにより痛みも軽減されます。(書籍 p.36 参照)',
+        explanation: '親指で皮膚を手前（末梢側）に引くことで、血管を固定して逃げにくくすると同時に、皮膚にテンションをかけて針がスパッと入るようにします。これにより痛みも軽減されます。(書籍 p.24 参照)',
       },
       {
-        id: 'q3-4',
+        id: 'q2-9',
         questionText: '皮膚を固定する際、親指はどこに置くのが適切ですか？',
         options: [
           { id: 'a', text: '穿刺点の真上', isCorrect: false },
@@ -282,21 +220,28 @@ export const quizData: Lesson[] = [
           { id: 'c', text: '穿刺点の横', isCorrect: false },
           { id: 'd', text: '穿刺点より中枢側', isCorrect: false },
         ],
-        explanation: '穿刺点の数cm手前に親指を置き、下方向（末梢方向）へ皮膚を引っ張ります。穿刺の邪魔にならず、かつ十分にテンションがかかる位置です。(書籍 p.37 参照)',
+        explanation: '穿刺点の数cm手前に親指を置き、下方向（末梢方向）へ皮膚を引っ張ります。穿刺の邪魔にならず、かつ十分にテンションがかかる位置です。(書籍 p.24 参照)',
       },
       {
-        id: 'q3-5',
-        questionText: '駆血時間は最大で何分以内にするのが望ましいですか？',
+        id: 'q2-10',
+        questionText: '静脈血管の固定において、引っ張る方向として正しいのは？',
         options: [
-          { id: 'a', text: '30秒以内', isCorrect: false },
-          { id: 'b', text: '1〜2分以内', isCorrect: true },
-          { id: 'c', text: '5分以内', isCorrect: false },
-          { id: 'd', text: '10分以内', isCorrect: false },
+          { id: 'a', text: '血管に対して横方向', isCorrect: false },
+          { id: 'b', text: '血管の走行に沿って、末梢側（手前）へ引っ張る', isCorrect: true },
+          { id: 'c', text: '天井方向へ持ち上げる', isCorrect: false },
+          { id: 'd', text: '中枢側（奥）へ押し込む', isCorrect: false },
         ],
-        explanation: '長時間駆血すると、血液濃縮により検査値（カリウムやタンパク質など）に影響が出たり、しびれの原因になります。1〜2分以内を目安に行います。(書籍 p.40 参照)',
+        explanation: '基本は血管の走行に沿って、自分の方（末梢側）へまっすぐ引っ張ります。これにより血管が直線的になり、固定も安定します。(書籍 p.24 参照)',
       },
+    ],
+  },
+  {
+    id: 'lesson-3',
+    title: 'Lesson 3 針の選択と穿刺方法（p.29-42）',
+    description: '直針と翼状針の違い、適切なゲージの選択、痛くない穿刺角度や逆血確認のコツを学びます。',
+    questions: [
       {
-        id: 'q3-6',
+        id: 'q3-1',
         questionText: '採血針の刃面（カット面）は、通常どちらに向けて穿刺しますか？',
         options: [
           { id: 'a', text: '下向き（皮膚側）', isCorrect: false },
@@ -307,18 +252,7 @@ export const quizData: Lesson[] = [
         explanation: '刃面を上に向けることで、鋭利な先端が皮膚にスムーズに入り、痛みを最小限に抑えられます。また、血管壁を切るリスクも減ります。(書籍 p.30 参照)',
       },
       {
-        id: 'q3-7',
-        questionText: '直針（注射針）と比較した際の「翼状針」の最大のメリットは？',
-        options: [
-          { id: 'a', text: 'コストが安い', isCorrect: false },
-          { id: 'b', text: '羽を持って操作でき、角度を浅く保ちやすく固定しやすい', isCorrect: true },
-          { id: 'c', text: '針が太い', isCorrect: false },
-          { id: 'd', text: '逆血が見えない', isCorrect: false },
-        ],
-        explanation: '翼状針は羽を持つことで指先での繊細な操作が可能で、特に細い血管や浅い血管に対して角度を寝かせて刺入しやすいのが特徴です。(書籍 p.34 参照)',
-      },
-      {
-        id: 'q3-8',
+        id: 'q3-2',
         questionText: '針の太さを表すゲージ（G）について、正しい説明は？',
         options: [
           { id: 'a', text: '数字が大きいほど針は太い', isCorrect: false },
@@ -329,7 +263,7 @@ export const quizData: Lesson[] = [
         explanation: 'ゲージ（G）の数字が大きいほど針は細くなります。通常、採血では21G〜23Gが使用されます。(書籍 p.31 参照)',
       },
       {
-        id: 'q3-9',
+        id: 'q3-3',
         questionText: '浅い血管に対して、角度をつけすぎ（45度以上など）で刺入するとどうなるリスクがありますか？',
         options: [
           { id: 'a', text: '血管の手前で止まる', isCorrect: false },
@@ -340,7 +274,29 @@ export const quizData: Lesson[] = [
         explanation: '浅い血管に急な角度で刺すと、針先が血管内腔に留まらず、すぐに対側の血管壁を突き破ってしまいます。浅い血管ほど寝かせて刺す必要があります。(書籍 p.32 参照)',
       },
       {
-        id: 'q3-10',
+        id: 'q3-4',
+        questionText: '痛くない駆血帯の外し方として推奨されるのは？',
+        options: [
+          { id: 'a', text: '一気にパチンと外す', isCorrect: false },
+          { id: 'b', text: '皮膚を挟まないように指を添えて、ゆっくり緩める', isCorrect: true },
+          { id: 'c', text: 'ハサミで切る', isCorrect: false },
+          { id: 'd', text: '患者さんに外してもらう', isCorrect: false },
+        ],
+        explanation: 'ゴムバンドなどを勢いよく外すと皮膚を弾いて痛みを伴います。ロックを外す際は指を添えて衝撃を和らげる配慮が必要です。(書籍 p.33 参照)',
+      },
+      {
+        id: 'q3-5',
+        questionText: '直針（注射針）と比較した際の「翼状針」の最大のメリットは？',
+        options: [
+          { id: 'a', text: 'コストが安い', isCorrect: false },
+          { id: 'b', text: '羽を持って操作でき、角度を浅く保ちやすく固定しやすい', isCorrect: true },
+          { id: 'c', text: '針が太い', isCorrect: false },
+          { id: 'd', text: '逆血が見えない', isCorrect: false },
+        ],
+        explanation: '翼状針は羽を持つことで指先での繊細な操作が可能で、特に細い血管や浅い血管に対して角度を寝かせて刺入しやすいのが特徴です。(書籍 p.34 参照)',
+      },
+      {
+        id: 'q3-6',
         questionText: '真空管採血ホルダーを使用時、逆血が見えにくい場合に確認する方法として適切なのは？',
         options: [
           { id: 'a', text: '針を抜いて確認する', isCorrect: false },
@@ -349,6 +305,50 @@ export const quizData: Lesson[] = [
           { id: 'd', text: '針を回転させる', isCorrect: false },
         ],
         explanation: '逆血が見にくい場合、採血管をホルダーにセットして陰圧をかけることで、血管に入っていれば血液が勢いよく流入してきます。ただし、入っていなければ陰圧が失われるため予備の管が必要です。(書籍 p.33 関連)',
+      },
+      {
+        id: 'q3-7',
+        questionText: '注射針のゲージ（太さ）と「ハブ（針基）の色」の組み合わせで、一般的な規格（JIS/ISO）は？',
+        options: [
+          { id: 'a', text: '21G＝ピンク、22G＝青', isCorrect: false },
+          { id: 'b', text: '21G＝緑、22G＝黒、23G＝青（または水色）', isCorrect: true },
+          { id: 'c', text: '21G＝黄色、22G＝赤', isCorrect: false },
+          { id: 'd', text: '色は決まっていない', isCorrect: false },
+        ],
+        explanation: '針の太さは色で識別できるよう規格化されています。一般的に21Gは緑、22Gは黒、23Gは青（水色）です。太さを瞬時に判断するために覚えておくと便利です。(書籍 p.31 関連)',
+      },
+      {
+        id: 'q3-8',
+        questionText: '真空管採血ではなく「注射器（シリンジ）採血」を選択する主なメリットは？',
+        options: [
+          { id: 'a', text: '片手で操作できる', isCorrect: false },
+          { id: 'b', text: '手動で陰圧（引く力）を調整できるため、細い血管でも潰れにくい', isCorrect: true },
+          { id: 'c', text: '準備する物品が少ない', isCorrect: false },
+          { id: 'd', text: '針刺し事故のリスクがない', isCorrect: false },
+        ],
+        explanation: '真空管は一定の強い陰圧がかかるため、細い血管だと血管壁が吸い付いて閉塞したり、溶血することがあります。シリンジなら引き具合で圧を調整できます。(書籍 p.38 参照)',
+      },
+      {
+        id: 'q3-9',
+        questionText: '翼状針を使用して真空管採血を行う際、チューブ内の空気（デッドスペース）はどう影響しますか？',
+        options: [
+          { id: 'a', text: '影響はない', isCorrect: false },
+          { id: 'b', text: '1本目の採血量が空気の分だけ少なくなる（約0.4mL程度）', isCorrect: true },
+          { id: 'c', text: '血液が固まりやすくなる', isCorrect: false },
+          { id: 'd', text: '検査データが異常高値になる', isCorrect: false },
+        ],
+        explanation: '翼状針のチューブ内には空気が入っており、最初のスピッツにその空気が流入するため、規定量まで血液が入らないことがあります。凝固検査など厳密な量が必要な場合はダミー管で空気を抜く必要があります。(書籍 p.34 関連)',
+      },
+      {
+        id: 'q3-10',
+        questionText: '真空管採血ホルダーの取り扱いについて、感染予防の観点から正しいのは？',
+        options: [
+          { id: 'a', text: '汚れていなければ使い回してもよい', isCorrect: false },
+          { id: 'b', text: 'アルコールで拭けば再利用可能', isCorrect: false },
+          { id: 'c', text: '原則として患者ごとの「単回使用（ディスポーザブル）」である', isCorrect: true },
+          { id: 'd', text: '滅菌すれば永久に使える', isCorrect: false },
+        ],
+        explanation: 'ホルダーは血液が付着するリスクがあり、使い回しによる交差感染が問題視されています。現在は患者ごとに使い捨てるタイプ（または針と一体型）が標準的です。(書籍 p.39 関連)',
       },
     ],
   },
@@ -466,240 +466,6 @@ export const quizData: Lesson[] = [
           { id: 'd', text: '時間が短縮される', isCorrect: false },
         ],
         explanation: 'メンタルは手技に直結します。不安や迷いは手の震えや不十分な刺入速度につながり、結果として失敗の原因になります。「よし、いける！」と自己暗示をかけることも重要です。(書籍 p.50 関連)',
-      },
-    ],
-  },
-  {
-    id: 'lesson-5',
-    title: 'Lesson 5 肘での採血と神経・動脈の走行（p.53-66）',
-    description: '逆血確認の基本に加え、肘窩における静脈・動脈・神経の解剖学的走行と、誤穿刺・神経損傷リスクについて学びます。',
-    questions: [
-      {
-        id: 'q5-1',
-        questionText: '真空管採血ホルダーを使用する場合、逆血はどこで確認しますか？',
-        options: [
-          { id: 'a', text: '確認できない', isCorrect: false },
-          { id: 'b', text: '針を刺した瞬間にホルダー内の針の根元（透明ゴム部分など）を見る', isCorrect: true },
-          { id: 'c', text: 'スピッツを刺してから確認する', isCorrect: false },
-          { id: 'd', text: '患者さんに聞く', isCorrect: false },
-        ],
-        explanation: '現在は逆血確認機能付きの針やホルダーが普及しています。針の根元やフラッシュバックチャンバーに血液が返ってくるのを見て、血管確保を確認します。(書籍 p.54 参照)',
-      },
-      {
-        id: 'q5-2',
-        questionText: '逆血を確認した後、最初に行うべき動作は？',
-        options: [
-          { id: 'a', text: 'すぐに採血スピッツを刺す', isCorrect: false },
-          { id: 'b', text: '針の角度を寝かせて、数ミリ進める', isCorrect: true },
-          { id: 'c', text: '針を抜く', isCorrect: false },
-          { id: 'd', text: '駆血帯を外す', isCorrect: false },
-        ],
-        explanation: '逆血が来た時点では、針の刃面の一部しか血管に入っていない可能性があります。角度を寝かせて少し進めることで、針先全体を確実に血管内に収めます。(書籍 p.58 参照)',
-      },
-      {
-        id: 'q5-3',
-        questionText: '針を「寝かせる」理由として正しいものは？',
-        options: [
-          { id: 'a', text: '患者さんが見やすいように', isCorrect: false },
-          { id: 'b', text: '針先で血管の後壁（反対側の壁）を突き破らないようにするため', isCorrect: true },
-          { id: 'c', text: '血液の流れを止めるため', isCorrect: false },
-          { id: 'd', text: '針を固定しやすくするため', isCorrect: false },
-        ],
-        explanation: '刺入した角度のまま進めると、血管の裏側（後壁）を貫通してしまいます。血管と平行になるように角度を小さく（寝かせて）してから進めるのが鉄則です。(書籍 p.59 参照)',
-      },
-      {
-        id: 'q5-4',
-        questionText: '採血中、血液の出が悪くなった場合の対処として不適切なものは？',
-        options: [
-          { id: 'a', text: '針の角度を微調整する', isCorrect: false },
-          { id: 'b', text: '針を深く刺し直す', isCorrect: true },
-          { id: 'c', text: '駆血帯を巻き直す（緩んでいないか確認）', isCorrect: false },
-          { id: 'd', text: 'スピッツを交換してみる（真空圧不足の可能性）', isCorrect: false },
-        ],
-        explanation: '深く刺し直そうとすると血管を貫通したり、組織を損傷するリスクがあります。まずは針先が血管壁に当たっていないか、角度や向きを微調整するのが安全です。(書籍 p.62 参照)',
-      },
-      {
-        id: 'q5-5',
-        questionText: '採血終了時、抜針のタイミングは？',
-        options: [
-          { id: 'a', text: '駆血帯を巻いたまま抜く', isCorrect: false },
-          { id: 'b', text: '駆血帯を外し、スピッツも抜いてから、針を抜く', isCorrect: true },
-          { id: 'c', text: 'スピッツを刺したまま抜く', isCorrect: false },
-          { id: 'd', text: '患者さんに深呼吸してもらってから抜く', isCorrect: false },
-        ],
-        explanation: '駆血帯を外して血管内圧を下げ、スピッツも抜いて（陰圧を解除して）から抜針します。そうしないと血液が噴出したり、血腫（内出血）の原因になります。(書籍 p.65 参照)',
-      },
-      {
-        id: 'q5-6',
-        questionText: '「尺側皮静脈」の深部を走行しており、誤穿刺による損傷リスクがある神経はどれですか？',
-        options: [
-          { id: 'a', text: '橈骨神経', isCorrect: false },
-          { id: 'b', text: '正中神経', isCorrect: false },
-          { id: 'c', text: '内側前腕皮神経', isCorrect: true },
-          { id: 'd', text: '尺骨神経', isCorrect: false },
-        ],
-        explanation: '尺側皮静脈（小指側の静脈）の近くには内側前腕皮神経が走行しており、一部では静脈の上を通っていることもあります。ここを穿刺してしびれが出た場合は、この神経の損傷が疑われます。(書籍 p.58 fig.5-3 参照)',
-      },
-      {
-        id: 'q5-7',
-        questionText: '肘窩において、神経や動脈の損傷リスクが最も低く、第一選択として推奨される血管は？',
-        options: [
-          { id: 'a', text: '尺側皮静脈', isCorrect: false },
-          { id: 'b', text: '肘正中皮静脈', isCorrect: true },
-          { id: 'c', text: '上腕静脈', isCorrect: false },
-          { id: 'd', text: '橈骨動脈', isCorrect: false },
-        ],
-        explanation: '肘正中皮静脈は太く、比較的表層にあり、周囲に太い神経や動脈が密接していないため、最も安全な穿刺部位とされています。(書籍 p.62 参照)',
-      },
-      {
-        id: 'q5-8',
-        questionText: '橈側皮静脈（親指側の静脈）を狙う際、近くを走行しているため注意が必要な神経は？',
-        options: [
-          { id: 'a', text: '外側前腕皮神経', isCorrect: true },
-          { id: 'b', text: '内側前腕皮神経', isCorrect: false },
-          { id: 'c', text: '坐骨神経', isCorrect: false },
-          { id: 'd', text: '顔面神経', isCorrect: false },
-        ],
-        explanation: '橈側皮静脈の近くには外側前腕皮神経が走行しています。特に深部を狙う際は注意が必要です。(書籍 p.62 fig.5-7 参照)',
-      },
-      {
-        id: 'q5-9',
-        questionText: '上腕動脈は、肘窩においてどの静脈の近く（深部）を走行していますか？',
-        options: [
-          { id: 'a', text: '橈側皮静脈の外側', isCorrect: false },
-          { id: 'b', text: '手背静脈', isCorrect: false },
-          { id: 'c', text: '尺側皮静脈および肘正中皮静脈の内側寄り', isCorrect: true },
-          { id: 'd', text: '足背静脈', isCorrect: false },
-        ],
-        explanation: '上腕動脈は肘窩の内側寄り、尺側皮静脈や正中神経の近くを走行しています。拍動を確認し、誤って穿刺しないよう注意が必要です。(書籍 p.58 fig.5-3 参照)',
-      },
-      {
-        id: 'q5-10',
-        questionText: '穿刺中に患者さんが「指先の方に電気が走ったような痛み」を訴えた場合の正しい対応は？',
-        options: [
-          { id: 'a', text: '「我慢してください」と言って続ける', isCorrect: false },
-          { id: 'b', text: '針を少し引いて角度を変える', isCorrect: false },
-          { id: 'c', text: '直ちに抜針し、穿刺を中止する', isCorrect: true },
-          { id: 'd', text: '駆血帯をきつく締め直す', isCorrect: false },
-        ],
-        explanation: '放散痛は神経に触れた明確なサインです。そのまま操作を続けると神経損傷を重症化させる恐れがあります。直ちに抜針し、医師に報告します。(書籍 p.58 関連)',
-      },
-    ],
-  },
-  {
-    id: 'lesson-6',
-    title: 'Lesson 6 血管の選択と失敗時の対応（p.67-84）',
-    description: '穿刺に適した血管の選び方（Y字分岐など）と、失敗した場合の冷静な対処法、再穿刺時のマナーを学びます。',
-    questions: [
-      {
-        id: 'q6-1',
-        questionText: '穿刺しても逆血がない場合、皮下で針先をあちこち探る「探り針」はなぜ推奨されないのですか？',
-        options: [
-          { id: 'a', text: '時間がかかるから', isCorrect: false },
-          { id: 'b', text: '組織や神経を損傷し、強い痛みや後遺症（痺れなど）の原因になるから', isCorrect: true },
-          { id: 'c', text: '針が曲がるから', isCorrect: false },
-          { id: 'd', text: '患者さんがくすぐったいから', isCorrect: false },
-        ],
-        explanation: '血管が見つからないからといって、針先を皮下でグリグリと動かすのは非常に危険です。神経損傷のリスクが高く、患者さんに激痛を与えます。一度抜いて仕切り直すのがプロの対応です。(書籍 p.68 参照)',
-      },
-      {
-        id: 'q6-2',
-        questionText: '失敗してしまった際、患者さんへの対応として最も適切なのは？',
-        options: [
-          { id: 'a', text: '「血管が細いですね」と血管のせいにする', isCorrect: false },
-          { id: 'b', text: '無言でやり直す', isCorrect: false },
-          { id: 'c', text: '「申し訳ありません、痛みがありましたか？」と謝罪し気遣う', isCorrect: true },
-          { id: 'd', text: 'すぐに他のスタッフに代わる', isCorrect: false },
-        ],
-        explanation: '失敗は誰にでもありますが、まずは誠意を持って謝罪し、患者さんの苦痛に配慮することが信頼関係の維持に繋がります。言い訳は避けるべきです。(書籍 p.70 参照)',
-      },
-      {
-        id: 'q6-3',
-        questionText: '再穿刺を行う場合、穿刺部位はどこを選ぶべきですか？',
-        options: [
-          { id: 'a', text: '失敗した部位と同じ場所', isCorrect: false },
-          { id: 'b', text: '失敗した部位より中枢側（心臓側）', isCorrect: false },
-          { id: 'c', text: '失敗した部位より末梢側、または反対の腕', isCorrect: true },
-          { id: 'd', text: 'どこでも良い', isCorrect: false },
-        ],
-        explanation: '失敗した部位より中枢側で駆血すると、失敗した穴から出血して血腫ができる可能性があります。原則として別の腕にするか、失敗部位より末梢側を選びます。(書籍 p.74 参照)',
-      },
-      {
-        id: 'q6-4',
-        questionText: '抜針後の止血について、正しい指導は？',
-        options: [
-          { id: 'a', text: '「揉んでください」と言う', isCorrect: false },
-          { id: 'b', text: '「5分間、揉まずにしっかり押さえていてください」と伝える', isCorrect: true },
-          { id: 'c', text: '「そのままでいいです」と言う', isCorrect: false },
-          { id: 'd', text: '「軽く触れる程度でいいです」と言う', isCorrect: false },
-        ],
-        explanation: '揉むと凝固した血液が剥がれ、再出血や内出血の原因になります。揉まずに圧迫止血（5分間）が基本です。(書籍 p.76 参照)',
-      },
-      {
-        id: 'q6-5',
-        questionText: '何度か失敗し、自分が「ハマってしまった」と感じた時はどうすべきですか？',
-        options: [
-          { id: 'a', text: '意地でも成功するまで続ける', isCorrect: false },
-          { id: 'b', text: '2回（施設基準による）失敗したら、潔く他のスタッフに交代する', isCorrect: true },
-          { id: 'c', text: '休憩してから同じ患者さんに再挑戦する', isCorrect: false },
-          { id: 'd', text: 'さらに細い針に変えて粘る', isCorrect: false },
-        ],
-        explanation: '「2回失敗したら交代」などのルールを設けている施設も多いです。緊張や焦りで視野が狭くなっているため、交代した方が患者さんの負担も少なく、結果的に早く終わります。(書籍 p.80 参照)',
-      },
-      {
-        id: 'q6-6',
-        questionText: '血管選択において、血管が「Yの字」に分岐している部分（合流点）が推奨される理由は？',
-        options: [
-          { id: 'a', text: '見た目がかっこいいから', isCorrect: false },
-          { id: 'b', text: '血管が周囲の組織に固定されており、針を刺しても左右に逃げにくいから', isCorrect: true },
-          { id: 'c', text: '血管が細くなるから', isCorrect: false },
-          { id: 'd', text: '神経がないから', isCorrect: false },
-        ],
-        explanation: 'Y字の分岐部は血管が組織にアンカー（固定）されている状態に近いので、穿刺時に血管がコロコロと逃げるのを防ぎやすく、成功率が高まります。(書籍 p.74 fig.6-3 参照)',
-      },
-      {
-        id: 'q6-7',
-        questionText: '血管を選ぶ際、見た目の太さだけでなく、指で触れて何を確認することが重要ですか？',
-        options: [
-          { id: 'a', text: '温度', isCorrect: false },
-          { id: 'b', text: '色', isCorrect: false },
-          { id: 'c', text: '弾力（リバウンド）', isCorrect: true },
-          { id: 'd', text: '匂い', isCorrect: false },
-        ],
-        explanation: '見た目は太くても、硬くて弾力がない血管は脆かったり血栓があったりします。指で軽く押して「プルン」と返ってくる弾力がある血管が良い血管です。(書籍 p.69 参照)',
-      },
-      {
-        id: 'q6-8',
-        questionText: '前腕（肘より先）で血管を探す場合、比較的まっすぐで穿刺しやすいとされる血管は？',
-        options: [
-          { id: 'a', text: '指先の毛細血管', isCorrect: false },
-          { id: 'b', text: '前腕の橈側皮静脈や正中皮静脈', isCorrect: true },
-          { id: 'c', text: '足の血管', isCorrect: false },
-          { id: 'd', text: '脇の下の血管', isCorrect: false },
-        ],
-        explanation: '前腕の橈側（親指側）や中央を走る静脈は、比較的直線的で固定もしやすく、肘の次に選択肢となることが多い部位です。(書籍 p.69 fig.6-1 参照)',
-      },
-      {
-        id: 'q6-9',
-        questionText: '触診した際に「硬い」「コリコリする」と感じる血管は、どのような状態が疑われますか？',
-        options: [
-          { id: 'a', text: '非常に健康な血管', isCorrect: false },
-          { id: 'b', text: '血管が硬化している、または過去の穿刺による瘢痕がある', isCorrect: true },
-          { id: 'c', text: '血液が満タンに入っている', isCorrect: false },
-          { id: 'd', text: '筋肉である', isCorrect: false },
-        ],
-        explanation: '硬い血管は針が刺さりにくく、血管壁も傷つきやすいため、穿刺部位としては不向きです。避けるのが無難です。(書籍 p.70 関連)',
-      },
-      {
-        id: 'q6-10',
-        questionText: '手背（手の甲）の血管を選択する場合の注意点として正しいものは？',
-        options: [
-          { id: 'a', text: '痛みが全くない', isCorrect: false },
-          { id: 'b', text: '血管が太く固定されているので最も簡単', isCorrect: false },
-          { id: 'c', text: '血管が細く動きやすいため固定をしっかり行う必要があり、痛みも比較的強い', isCorrect: true },
-          { id: 'd', text: '神経損傷のリスクがない', isCorrect: false },
-        ],
-        explanation: '手背は皮下脂肪が薄く血管が逃げやすい上、神経も浅い位置にあるため痛みを感じやすい部位です。しっかりとした固定と愛護的な操作が必要です。(書籍 p.75 参照)',
       },
     ],
   },
@@ -1536,3 +1302,23 @@ export const quizLessons = (() => {
   });
 })();
 export const QUIZ_BOOK_TITLE = 'ハヤピンpresents 採血・静脈ルート確保';
+
+/*
+  Backup of old Lesson 2 (actually Lesson 6 content):
+  {
+    id: 'lesson-2-old',
+    title: 'Lesson 2 血管選びの極意（Old Version）',
+    questions: [
+      { id: 'q2-1', ... }, // 3つのSの話など
+      { id: 'q2-2', questionText: '血管を怒張させる...タッピング', ... },
+      { id: 'q2-3', questionText: '見えない血管...触診', ... },
+      { id: 'q2-4', questionText: '高齢者の血管...逃げやすい', ... },
+      { id: 'q2-5', questionText: '避けるべき場所...シャント肢', ... },
+      { id: 'q2-6', questionText: '安定した姿勢...', ... }, // これは新L2でも採用
+      { id: 'q2-7', questionText: 'ラテックスアレルギー...', ... },
+      { id: 'q2-8', questionText: '合流して太くなっている血管...', ... },
+      { id: 'q2-9', questionText: 'ホットパック...低温火傷', ... },
+      { id: 'q2-10', questionText: '駆血圧...', ... } // これは新L2でも採用
+    ]
+  }
+*/
