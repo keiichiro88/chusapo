@@ -225,7 +225,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
             <div className="flex space-x-2">
               <button
                 onClick={onEditProfile}
-                className="flex-1 px-4 py-1.5 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition-colors text-sm"
+                className="flex-1 px-4 py-1.5 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition-colors text-sm text-gray-700"
               >
                 プロフィールを編集
               </button>

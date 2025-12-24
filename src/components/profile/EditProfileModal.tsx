@@ -3,7 +3,7 @@ import { X, Camera, Upload, MapPin, Link as LinkIcon, User, Briefcase, Palette, 
 import Modal from '../auth/Modal';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
-// import ImageCropModal from './ImageCropModal';  // 一時的に無効化
+import ImageCropModal from './ImageCropModal';
 import { generateAvatarGradient } from '../../utils/avatarUtils';
 
 interface EditProfileModalProps {
@@ -307,7 +307,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
                     <button
                       type="button"
                       onClick={() => handleImageUpload('avatar')}
-                      className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium w-full"
+                      className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium w-full text-gray-700"
                     >
                       <Upload className="h-4 w-4 mr-2" />
                       新しい画像をアップロード
@@ -604,14 +604,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
       </div>
       
       {/* 画像クロップモーダル */}
-      {/* <ImageCropModal
+      <ImageCropModal
         isOpen={showCropModal}
         onClose={() => setShowCropModal(false)}
         imageUrl={cropImageUrl}
         onSave={handleCropSave}
         cropShape={cropType === 'avatar' ? 'circle' : 'rect'}
         aspectRatio={cropType === 'avatar' ? 1 : 16/9}
-      /> */}
+      />
     </Modal>
   );
 };

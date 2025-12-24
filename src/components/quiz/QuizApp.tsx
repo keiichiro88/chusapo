@@ -409,7 +409,7 @@ const LessonList: React.FC<{
               className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
             >
               <Play className="h-4 w-4" />
-              <span>このLessonを開始</span>
+              <span>Lesson{lesson.id.replace('lesson-', '')}を開始</span>
             </button>
 
             <p className="mt-3 text-xs text-gray-500 leading-relaxed">
@@ -1019,6 +1019,38 @@ const LessonRunner: React.FC<{
                     : '/quiz-lesson2-q10-illust.png'
                 }
                 alt={`Lesson 2-${currentQuestion.id.replace('q2-', '')} 解説の挿絵`}
+                className="w-full max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white shadow-sm object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          )}
+
+          {/* Lesson 3 の特定問題用の挿絵（解説の補助） */}
+          {lesson.id === 'lesson-3' && ['q3-1', 'q3-2', 'q3-7'].includes(currentQuestion.id) && (
+            <div className="mb-4">
+              <img
+                src={
+                  currentQuestion.id === 'q3-1'
+                    ? '/quiz-lesson3-q1-illust.png'
+                    : currentQuestion.id === 'q3-2'
+                    ? '/quiz-lesson3-q2-illust.png'
+                    : '/quiz-lesson3-q7-illust.png'
+                }
+                alt={`Lesson 3-${currentQuestion.id.replace('q3-', '')} 解説の挿絵`}
+                className="w-full max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white shadow-sm object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          )}
+
+          {/* Lesson 4 の特定問題用の挿絵（解説の補助） */}
+          {lesson.id === 'lesson-4' && currentQuestion.id === 'q4-2' && (
+            <div className="mb-4">
+              <img
+                src="/quiz-lesson4-q2-illust.png"
+                alt="Lesson 4-2 解説の挿絵（穿刺時の支え）"
                 className="w-full max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white shadow-sm object-cover"
                 loading="lazy"
                 decoding="async"
