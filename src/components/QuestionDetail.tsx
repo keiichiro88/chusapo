@@ -14,7 +14,11 @@ import {
   Send,
   AlertCircle,
   Stethoscope,
-  Shield
+  Shield,
+  MoreVertical,
+  Flag,
+  UserX,
+  UserCheck
 } from 'lucide-react';
 import { Question, Answer } from '../types';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
@@ -37,6 +41,9 @@ interface QuestionDetailProps {
   isMyQuestion?: boolean;
   onUserProfileClick?: (authorName: string) => void;
   onBestAnswerChange?: () => void;
+  onReport?: () => void;
+  isAuthorBlocked?: boolean;
+  onToggleBlockAuthor?: () => void;
   // useDataProvider からの Props
   answers: Answer[];
   onAddAnswer: (answerData: {
@@ -70,6 +77,9 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
   currentUser = null,
   isMyQuestion = false,
   onBestAnswerChange,
+  onReport,
+  isAuthorBlocked = false,
+  onToggleBlockAuthor,
   answers,
   onAddAnswer,
   onToggleGratitude,
@@ -95,6 +105,7 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [answerToRemove, setAnswerToRemove] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   // 感謝済み状態のローカルキャッシュ（アニメーション用）
   const [gratitudeCache, setGratitudeCache] = useState<{[key: string]: boolean}>({});
 
@@ -164,6 +175,19 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
       window.scrollTo(0, scrollY);
     };
   }, [isOpen, onClose]);
+
+  // メニュー外クリックで閉じる
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      const menu = document.getElementById('question-detail-safety-menu');
+      if (menu && !menu.contains(target)) setIsMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
   const handleAnswerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -400,9 +424,63 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center text-gray-500 text-sm font-medium whitespace-nowrap">
-                <Clock className="h-4 w-4 mr-1.5" />
-                {question.timeAgo}
+              <div className="flex items-center gap-2 justify-end">
+                <div className="flex items-center text-gray-500 text-sm font-medium whitespace-nowrap">
+                  <Clock className="h-4 w-4 mr-1.5" />
+                  {question.timeAgo}
+                </div>
+
+                {/* 通報/ブロック（安全導線） */}
+                {!isMyQuestion && (onReport || onToggleBlockAuthor) && (
+                  <div className="relative" id="question-detail-safety-menu">
+                    <button
+                      type="button"
+                      onClick={() => setIsMenuOpen((v) => !v)}
+                      className="p-2 rounded-xl hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-colors"
+                      aria-label="メニュー"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+
+                    {isMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden z-20">
+                        {onReport && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              onReport();
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            <Flag className="h-4 w-4 text-amber-600" />
+                            <span className="text-sm font-semibold text-gray-800">通報する</span>
+                          </button>
+                        )}
+
+                        {onToggleBlockAuthor && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              onToggleBlockAuthor();
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            {isAuthorBlocked ? (
+                              <UserCheck className="h-4 w-4 text-emerald-600" />
+                            ) : (
+                              <UserX className="h-4 w-4 text-red-600" />
+                            )}
+                            <span className="text-sm font-semibold text-gray-800">
+                              {isAuthorBlocked ? 'ブロック解除' : 'このユーザーをブロック'}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -410,7 +488,7 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
               {question.title}
             </h1>
 
-            <p className="text-gray-700 leading-relaxed text-lg mb-6">
+            <p className="text-gray-700 leading-relaxed text-lg mb-6 whitespace-pre-wrap break-words">
               {question.content}
             </p>
 

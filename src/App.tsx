@@ -26,7 +26,10 @@ import UserSelector from './components/UserSelector';
 import EditProfileModal from './components/profile/EditProfileModal';
 import AuthTest from './components/auth/AuthTest';
 import EmptyState from './components/EmptyState';
+import { ReportModal } from './components/moderation/ReportModal';
 import { useDataProvider } from './hooks/useDataProvider';
+import { useBlocks } from './hooks/useBlocks';
+import { useReports, type ReportTargetType } from './hooks/useReports';
 import { useUser } from './hooks/useUser';
 import { useToastContext } from './contexts/ToastContext';
 import { Question } from './types';
@@ -104,8 +107,17 @@ function App() {
   
   const { currentUser, users, loginAsUser, logout, createUser, isMyQuestion } = useUser();
   const { showInfo, showSuccess, showError } = useToastContext();
+  const { blockedUserIds, isBlocked, blockUser, unblockUser } = useBlocks();
+  const { report } = useReports();
+  const [reportTarget, setReportTarget] = useState<null | {
+    targetType: ReportTargetType;
+    targetId?: string;
+    reportedUserId?: string;
+    reportedUserName?: string;
+  }>(null);
 
   const isDev = import.meta.env.DEV;
+  const blockedSet = useMemo(() => new Set(blockedUserIds), [blockedUserIds]);
 
   // 認証が必要な操作のハンドラ
   const handleAuthRequiredAction = (action: () => void, actionName: string = '操作') => {
@@ -116,21 +128,32 @@ function App() {
     action();
   };
 
-  // 実際の回答数を含む質問データを取得
+  // 実際の回答数を含む質問データを取得（SupabaseはDBカウントを優先）
   const questionsWithAnswerCount = useMemo(() => {
+    if (isAuthenticated) return questions;
     return questions.map(question => {
-      const answers = getAnswersForQuestion(question.id);
+      const a = getAnswersForQuestion(question.id);
       return {
         ...question,
-        answers: answers.length,
-        hasAcceptedAnswer: answers.some(answer => answer.isAccepted)
+        answers: a.length,
+        hasAcceptedAnswer: a.some(answer => answer.isAccepted)
       };
     });
-  }, [questions, getAnswersForQuestion]);
+  }, [questions, getAnswersForQuestion, isAuthenticated]);
+
+  // ブロック中ユーザーの投稿は非表示
+  const visibleQuestions = useMemo(() => {
+    return questionsWithAnswerCount.filter((q) => !(q.authorId && blockedSet.has(q.authorId)));
+  }, [blockedSet, questionsWithAnswerCount]);
+
+  // 回答もブロック中ユーザー分は非表示（読み込み済み分のみ）
+  const visibleAnswers = useMemo(() => {
+    return answers.filter((a) => !(a.authorId && blockedSet.has(a.authorId)));
+  }, [answers, blockedSet]);
 
   // 検索・フィルタリングされた質問を取得
   const filteredAndSortedQuestions = useMemo(() => {
-    let filtered = questionsWithAnswerCount;
+    let filtered = visibleQuestions;
 
     // 検索クエリでフィルタリング
     if (searchQuery) {
@@ -155,7 +178,7 @@ function App() {
     });
 
     return filtered;
-  }, [questionsWithAnswerCount, searchQuery, filters]);
+  }, [visibleQuestions, searchQuery, filters]);
 
   // 表示する質問（ページング対応）
   // Supabase: サーバーサイドページング（既にページング済みデータ）
@@ -223,44 +246,44 @@ function App() {
       title: '注射',
       description: '肋肉注射・皮下注射の技術とコツ',
       icon: Syringe,
-      questionCount: questionsWithAnswerCount.filter(q => q.tags.includes('注射')).length,
+      questionCount: visibleQuestions.filter(q => q.tags.includes('注射')).length,
       color: 'bg-gradient-to-br from-red-500 to-pink-600'
     },
     {
       title: '採血',
       description: '静脈採血の技術とトラブルシューティング',
       icon: TestTube,
-      questionCount: questionsWithAnswerCount.filter(q => q.tags.includes('採血')).length,
+      questionCount: visibleQuestions.filter(q => q.tags.includes('採血')).length,
       color: 'bg-gradient-to-br from-blue-500 to-cyan-600'
     },
     {
       title: 'ルート確保',
       description: '静脈内アクセスとカテーテル留置',
       icon: Cable,
-      questionCount: questionsWithAnswerCount.filter(q => q.tags.includes('ルート確保')).length,
+      questionCount: visibleQuestions.filter(q => q.tags.includes('ルート確保')).length,
       color: 'bg-gradient-to-br from-emerald-500 to-teal-600'
     },
     {
       title: '動脈穿刺',
       description: '動脈血ガスと動脈アクセス',
       icon: Activity,
-      questionCount: questionsWithAnswerCount.filter(q => q.tags.includes('動脈穿刺')).length,
+      questionCount: visibleQuestions.filter(q => q.tags.includes('動脈穿刺')).length,
       color: 'bg-gradient-to-br from-purple-500 to-indigo-600'
     },
     {
       title: 'その他',
       description: 'その他の穿刺技術や関連質問',
       icon: CircleDot,
-      questionCount: questionsWithAnswerCount.filter(q => q.tags.includes('その他')).length,
+      questionCount: visibleQuestions.filter(q => q.tags.includes('その他')).length,
       color: 'bg-gradient-to-br from-gray-500 to-slate-600'
     }
   ];
 
   // 統計情報を実際のデータから計算
   const stats = useMemo(() => {
-    const totalQuestions = questionsWithAnswerCount.length;
-    const resolvedQuestions = questionsWithAnswerCount.filter(q => q.hasAcceptedAnswer).length;
-    const totalAnswers = questionsWithAnswerCount.reduce((sum, q) => sum + q.answers, 0);
+    const totalQuestions = visibleQuestions.length;
+    const resolvedQuestions = visibleQuestions.filter(q => q.hasAcceptedAnswer).length;
+    const totalAnswers = visibleQuestions.reduce((sum, q) => sum + q.answers, 0);
     const resolutionRate = totalQuestions > 0 ? Math.round((resolvedQuestions / totalQuestions) * 100) : 0;
 
     return [
@@ -287,13 +310,43 @@ function App() {
       },
       {
         title: '総いいね数',
-        value: questionsWithAnswerCount.reduce((sum, q) => sum + q.likes, 0).toString(),
-        change: `平均 ${totalQuestions > 0 ? (questionsWithAnswerCount.reduce((sum, q) => sum + q.likes, 0) / totalQuestions).toFixed(1) : 0} いいね/質問`,
+        value: visibleQuestions.reduce((sum, q) => sum + q.likes, 0).toString(),
+        change: `平均 ${totalQuestions > 0 ? (visibleQuestions.reduce((sum, q) => sum + q.likes, 0) / totalQuestions).toFixed(1) : 0} いいね/質問`,
         changeType: 'increase' as const,
         icon: Clock
       }
     ];
-  }, [questionsWithAnswerCount]);
+  }, [visibleQuestions]);
+
+  const openReport = (params: {
+    targetType: ReportTargetType;
+    targetId?: string;
+    reportedUserId?: string;
+    reportedUserName?: string;
+  }) => {
+    setReportTarget(params);
+  };
+
+  const handleToggleBlock = async (authorId: string | undefined, authorName: string) => {
+    if (!authorId) {
+      showError('このユーザーはブロックできません（ID未取得）');
+      return;
+    }
+    const currentlyBlocked = blockedSet.has(authorId);
+    const actionLabel = currentlyBlocked ? 'ブロック解除' : 'ブロック';
+    const confirmText = currentlyBlocked
+      ? `${authorName}さんのブロックを解除しますか？`
+      : `${authorName}さんをブロックしますか？\n\n・このユーザーの投稿/回答が非表示になります\n・いつでも解除できます`;
+
+    if (!window.confirm(confirmText)) return;
+
+    const result = currentlyBlocked ? await unblockUser(authorId) : await blockUser(authorId);
+    if (result.success) {
+      showSuccess(`${authorName}さんを${actionLabel}しました`);
+    } else {
+      showError(result.error || `${actionLabel}に失敗しました`);
+    }
+  };
 
   const handleNavigate = (section: string) => {
     console.log('Navigating to section:', section);
@@ -396,15 +449,15 @@ function App() {
           onNavigate={handleNavigate}
           activeSection={activeSection}
           activeCategory={filters.category}
-          questionCount={questionsWithAnswerCount.length}
+          questionCount={visibleQuestions.length}
         />
 
         <main className="flex-1 min-w-0 px-4 lg:px-6 xl:px-8 py-8 lg:py-12">
           {activeSection === 'answer-questions' ? (
             <Suspense fallback={<SectionFallback label="質問に回答" />}>
               <AnswerQuestions
-                questions={questionsWithAnswerCount}
-                answers={answers}
+                questions={visibleQuestions}
+                answers={visibleAnswers}
                 onSubmitAnswer={handleSubmitAnswer}
                 onUserProfileClick={handleUserProfileClick}
                 onBack={() => setActiveSection('home')}
@@ -608,9 +661,19 @@ function App() {
                           onUserProfileClick={() => handleUserProfileClick(question.author)}
                           isLiked={isQuestionLiked(question.id)}
                           isMyQuestion={isMyQuestion(question.authorId || '')}
-                          answers={answers}
+                          answers={visibleAnswers}
                           onToggleGratitude={toggleGratitude}
                           isAnswerGratitude={isAnswerGratitude}
+                          onReport={() =>
+                            openReport({
+                              targetType: 'question',
+                              targetId: question.id,
+                              reportedUserId: question.authorId,
+                              reportedUserName: question.author,
+                            })
+                          }
+                          isAuthorBlocked={isBlocked(question.authorId)}
+                          onToggleBlockAuthor={() => handleToggleBlock(question.authorId, question.author)}
                           onBestAnswerSelect={async (answerId) => {
                             const result = await selectBestAnswer(question.id, answerId);
                             if (!result.success) {
@@ -793,13 +856,49 @@ function App() {
           currentUser={currentUser}
           isMyQuestion={isMyQuestion(selectedQuestion.authorId || '')}
           onUserProfileClick={handleUserProfileClick}
-          answers={answers}
+          answers={visibleAnswers}
           onAddAnswer={addAnswer}
           onToggleGratitude={toggleGratitude}
           isAnswerGratitude={isAnswerGratitude}
           onSelectBestAnswer={selectBestAnswer}
+          onReport={() =>
+            openReport({
+              targetType: 'question',
+              targetId: selectedQuestion.id,
+              reportedUserId: selectedQuestion.authorId,
+              reportedUserName: selectedQuestion.author,
+            })
+          }
+          isAuthorBlocked={isBlocked(selectedQuestion.authorId)}
+          onToggleBlockAuthor={() => handleToggleBlock(selectedQuestion.authorId, selectedQuestion.author)}
         />
       )}
+
+      <ReportModal
+        isOpen={!!reportTarget}
+        targetLabel={reportTarget?.targetType === 'answer' ? '回答' : reportTarget?.targetType === 'user' ? 'ユーザー' : '質問'}
+        reportedUserName={reportTarget?.reportedUserName}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async ({ reason, details }) => {
+          if (!reportTarget) return;
+          if (!isAuthenticated) {
+            showInfo('通報するにはログインが必要です。右上の「ログイン」ボタンからログインしてください。');
+            return;
+          }
+          const result = await report({
+            targetType: reportTarget.targetType,
+            targetId: reportTarget.targetId,
+            reportedUserId: reportTarget.reportedUserId,
+            reason,
+            details,
+          });
+          if (result.success) {
+            showSuccess('通報を受け付けました。ご協力ありがとうございます。');
+          } else {
+            showError(result.error || '通報に失敗しました');
+          }
+        }}
+      />
 
       {/* プロフィール編集モーダル */}
       <EditProfileModal

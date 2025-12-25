@@ -13,7 +13,11 @@ import {
   Star,
   ChevronDown,
   ChevronUp,
-  X
+  X,
+  MoreVertical,
+  Flag,
+  UserX,
+  UserCheck
 } from 'lucide-react';
 import { Question, Answer } from '../types';
 
@@ -25,6 +29,9 @@ interface QuestionCardProps {
   onUserProfileClick?: () => void;
   isLiked?: boolean;
   isMyQuestion?: boolean;
+  onReport?: () => void;
+  isAuthorBlocked?: boolean;
+  onToggleBlockAuthor?: () => void;
   onBestAnswerSelect?: (answerId: string) => void;
   // useDataProvider からの Props
   answers: Answer[];
@@ -41,6 +48,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   onUserProfileClick, 
   isLiked = false, 
   isMyQuestion = false, 
+  onReport,
+  isAuthorBlocked = false,
+  onToggleBlockAuthor,
   onBestAnswerSelect,
   answers,
   onToggleGratitude,
@@ -54,8 +64,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   const [gratitudeAnimations, setGratitudeAnimations] = useState<{[key: string]: boolean}>({});
   const [answerGratitudesLocal, setAnswerGratitudesLocal] = useState<{[key: string]: boolean}>({});
   const [isUpdating, setIsUpdating] = useState(false); // 更新中フラグ
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
   const questionHeaderRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleLikeClick = () => {
     // いいねを追加する場合のみアニメーションを実行
@@ -111,6 +123,20 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const avatar = useMemo(() => generateUserAvatar(question.author, question.authorRole), [question.author, question.authorRole]);
   const expertBadge = useMemo(() => getExpertBadge(question.authorRole), [question.authorRole]);
+
+  // メニュー外クリックで閉じる
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
   
   // Props からの回答データをこの質問用にフィルタリング & ソート（感謝数順）- メモ化
   const allAnswers = useMemo(() => {
@@ -289,9 +315,63 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex items-center text-gray-500 text-sm font-medium whitespace-nowrap">
-          <Clock className="h-4 w-4 mr-1.5" />
-          {question.timeAgo}
+        <div className="flex items-center gap-2 justify-end">
+          <div className="flex items-center text-gray-500 text-sm font-medium whitespace-nowrap">
+            <Clock className="h-4 w-4 mr-1.5" />
+            {question.timeAgo}
+          </div>
+
+          {/* 通報/ブロック（安全導線） */}
+          {!isMyQuestion && (onReport || onToggleBlockAuthor) && (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen((v) => !v)}
+                className="p-2 rounded-xl hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="メニュー"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden z-20">
+                  {onReport && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onReport();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                    >
+                      <Flag className="h-4 w-4 text-amber-600" />
+                      <span className="text-sm font-semibold text-gray-800">通報する</span>
+                    </button>
+                  )}
+
+                  {onToggleBlockAuthor && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onToggleBlockAuthor();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                    >
+                      {isAuthorBlocked ? (
+                        <UserCheck className="h-4 w-4 text-emerald-600" />
+                      ) : (
+                        <UserX className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className="text-sm font-semibold text-gray-800">
+                        {isAuthorBlocked ? 'ブロック解除' : 'このユーザーをブロック'}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -305,7 +385,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         <div className="text-gray-700 leading-relaxed text-sm">
           <p 
             ref={textRef}
-            className={isExpanded ? '' : 'line-clamp-3'}
+            className={`${isExpanded ? '' : 'line-clamp-3'} whitespace-pre-wrap break-words`}
             style={!isExpanded ? {
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
