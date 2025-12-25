@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Star,
   Sparkles,
+  Brain,
   TestTube,
   Activity,
   Cable,
@@ -478,6 +479,93 @@ function App() {
                   >
                     <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
                     <span>質問を投稿</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ホームショートカット（発見性UP） */}
+              <div className="mb-6 lg:mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm lg:text-base font-black text-gray-900">いますぐできること</h3>
+                  <span className="text-xs text-gray-500">メニューを開かなくてもOK</span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => handleAuthRequiredAction(() => setShowQuestionForm(true), '質問を投稿')}
+                    className="group bg-white border border-gray-100 rounded-2xl p-4 lg:p-5 text-left shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Plus className="h-5 w-5" />
+                      </div>
+                      {!isAuthenticated && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                          ログイン
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <p className="font-black text-gray-900 text-sm">質問する</p>
+                      <p className="text-xs text-gray-500 mt-1">困りごとを投稿</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAuthRequiredAction(() => handleNavigate('answer-questions'), '回答')}
+                    className="group bg-white border border-gray-100 rounded-2xl p-4 lg:p-5 text-left shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <Award className="h-5 w-5" />
+                      </div>
+                      {!isAuthenticated && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                          ログイン
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <p className="font-black text-gray-900 text-sm">回答する</p>
+                      <p className="text-xs text-gray-500 mt-1">知見をシェア</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate('quiz')}
+                    className="group bg-white border border-gray-100 rounded-2xl p-4 lg:p-5 text-left shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <Brain className="h-5 w-5" />
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <p className="font-black text-gray-900 text-sm">学ぶ</p>
+                      <p className="text-xs text-gray-500 mt-1">学習クイズ</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate('nurse-career-diagnosis')}
+                    className="group bg-white border border-gray-100 rounded-2xl p-4 lg:p-5 text-left shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                        NEW
+                      </span>
+                    </div>
+                    <div className="mt-3">
+                      <p className="font-black text-gray-900 text-sm">診断する</p>
+                      <p className="text-xs text-gray-500 mt-1">キャリア診断AI</p>
+                    </div>
                   </button>
                 </div>
               </div>
