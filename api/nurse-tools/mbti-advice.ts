@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
-import { RECRUITMENT_SITES } from '../../lib/nurse-tools/mbti-constants';
-import type { AIAdvice, PersonalityResult } from '../../lib/nurse-tools/mbti-types';
+import { RECRUITMENT_SITES } from '../../lib/nurse-tools/mbti-constants.js';
+import type { AIAdvice, PersonalityResult } from '../../lib/nurse-tools/mbti-types.js';
 
 type RequestLike = {
   method?: string;

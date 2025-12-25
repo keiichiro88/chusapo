@@ -1,4 +1,4 @@
-import { Question, RecruitmentSite, PersonalityResult, TypeCompatibility } from './mbti-types';
+import { Question, RecruitmentSite, PersonalityResult, TypeCompatibility } from './mbti-types.js';
 
 // 5段階評価対応、各指標(EI, SN, TF, JP)につき7-8問、合計30問
 export const QUESTIONS: Question[] = [
