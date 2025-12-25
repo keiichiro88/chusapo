@@ -437,7 +437,7 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                       : "この質問が参考になる場合にクリック"
                   }
                 >
-                  <div className={`p-2 rounded-xl transition-colors duration-200 ${
+                  <div className={`p-2 rounded-xl transition-colors duration-200 overflow-visible ${
                     isQuestionLiked 
                       ? 'bg-red-100' 
                       : 'group-hover:bg-red-50'
@@ -447,7 +447,7 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                         isQuestionLiked 
                           ? 'text-red-500 fill-red-500 scale-110' 
                           : 'text-gray-600 group-hover:text-red-500'
-                      }`}
+                      } ${isHeartAnimating ? 'text-red-500 fill-red-500' : ''}`}
                       style={{
                         animation: isHeartAnimating ? 'heartPulse 0.67s ease-in-out' : 'none',
                         animationFillMode: 'forwards'

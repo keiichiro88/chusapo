@@ -329,16 +329,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         </div>
 
         {/* 質問文直下のアクション - いいね・回答数・解決済み */}
-        <div className="flex items-center flex-wrap gap-x-6 gap-y-3 mt-4">
+        <div className="flex items-center flex-wrap gap-x-6 gap-y-3 mt-4 overflow-visible">
           <button 
             onClick={handleLikeClick}
-            className={`flex items-center space-x-2 transition-colors duration-200 group ${
+            className={`flex items-center space-x-2 transition-colors duration-200 group overflow-visible ${
               isLiked 
                 ? 'text-gray-700' 
                 : 'text-gray-600 hover:text-gray-700'
             }`}
           >
-            <div className={`p-2 rounded-xl transition-colors duration-200 ${
+            <div className={`p-2 rounded-xl transition-colors duration-200 overflow-visible ${
               isLiked 
                 ? 'bg-red-100' 
                 : 'group-hover:bg-red-50'
@@ -348,7 +348,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   isLiked 
                     ? 'text-red-500 fill-red-500 scale-110' 
                     : 'text-gray-600 group-hover:text-red-500'
-                }`}
+                } ${isHeartAnimating ? 'text-red-500 fill-red-500' : ''}`}
                 style={{
                   animation: isHeartAnimating ? 'heartPulse 0.67s ease-in-out' : 'none',
                   animationFillMode: 'forwards'
