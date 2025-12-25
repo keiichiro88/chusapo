@@ -8,7 +8,7 @@ import { useSupabaseAuth } from './useSupabaseAuth';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'answer' | 'gratitude' | 'best_answer' | 'like' | 'system';
+  type: 'answer' | 'gratitude' | 'best_answer' | 'like' | 'system' | 'follow';
   title: string;
   message: string;
   link?: string;
@@ -17,6 +17,7 @@ export interface Notification {
   related_answer_id?: string;
   from_user_id?: string;
   from_user?: {
+    id?: string;
     name: string;
     avatar_url?: string;
   };

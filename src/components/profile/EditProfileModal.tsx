@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Camera, Upload, MapPin, Link as LinkIcon, User, Briefcase, Palette, Image as ImageIcon, Youtube, Instagram, Twitter, Linkedin, Globe } from 'lucide-react';
+import { X, Camera, Upload, MapPin, Link as LinkIcon, User, Briefcase, Palette, Image as ImageIcon, Youtube, Instagram, Twitter, Linkedin, Globe, Lock, Unlock, Users } from 'lucide-react';
 import Modal from '../auth/Modal';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
 import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
+import { useFollows } from '../../hooks/useFollows';
 import ImageCropModal from './ImageCropModal';
 import { generateAvatarGradient } from '../../utils/avatarUtils';
 
@@ -19,6 +20,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
   // 認証ユーザー情報を渡してプロフィール設定を取得
   const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
   const { settings, updateSettings } = useProfileSettings(authUserInfo);
+  
+  // フォロー公開設定
+  const { privacySettings, updatePrivacySettings } = useFollows();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -48,6 +52,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropImageUrl, setCropImageUrl] = useState<string>('');
   const [cropType, setCropType] = useState<'avatar' | 'background'>('avatar');
+  
+  // 公開設定
+  const [isFollowersListPublic, setIsFollowersListPublic] = useState(true);
+  const [isFollowingListPublic, setIsFollowingListPublic] = useState(true);
   
   const avatarFileRef = useRef<HTMLInputElement>(null);
   const backgroundFileRef = useRef<HTMLInputElement>(null);
@@ -103,8 +111,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
       setBackgroundImage(settings.backgroundImage);
       setSelectedAvatarGradient(settings.avatarGradient);
       setSelectedBackgroundGradient(settings.backgroundGradient);
+      // 公開設定を初期化
+      setIsFollowersListPublic(privacySettings.is_followers_list_public);
+      setIsFollowingListPublic(privacySettings.is_following_list_public);
     }
-  }, [isOpen, settings]);
+  }, [isOpen, settings, privacySettings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +132,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
         avatarGradient: selectedAvatarGradient,
         backgroundGradient: selectedBackgroundGradient
       });
+      
+      // 公開設定を保存（Supabaseログイン時のみ）
+      if (supabaseUser) {
+        await updatePrivacySettings({
+          is_followers_list_public: isFollowersListPublic,
+          is_following_list_public: isFollowingListPublic,
+        });
+      }
       
       // 既存の認証システムにも反映
       updateProfile({
@@ -729,6 +748,72 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
               ※ SNSやウェブサイトのリンクを設定すると、プロフィールにアイコンが表示されます
             </p>
           </div>
+
+          {/* プライバシー設定（Supabaseログイン時のみ表示） */}
+          {supabaseUser && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-3">
+                <div className="flex items-center">
+                  <Lock className="h-4 w-4 mr-2" />
+                  プライバシー設定
+                </div>
+              </label>
+              <div className="space-y-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                {/* フォロワー一覧の公開設定 */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">フォロワー一覧を公開</p>
+                      <p className="text-xs text-gray-500">他のユーザーがあなたのフォロワー一覧を見られるようにする</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsFollowersListPublic(!isFollowersListPublic)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isFollowersListPublic ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        isFollowersListPublic ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* フォロー中一覧の公開設定 */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">フォロー中一覧を公開</p>
+                      <p className="text-xs text-gray-500">他のユーザーがあなたのフォロー中一覧を見られるようにする</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsFollowingListPublic(!isFollowingListPublic)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isFollowingListPublic ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        isFollowingListPublic ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2 flex items-center">
+                  <Lock className="h-3 w-3 mr-1" />
+                  非公開にしても、フォロワー数・フォロー中数は表示されます
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* 保存ボタン */}
           <div className="flex space-x-3 pt-4">

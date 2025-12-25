@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, MessageCircle, Heart, Award, Info, Check, Trash2, Loader2 } from 'lucide-react';
+import { Bell, MessageCircle, Heart, Award, Info, Check, Trash2, Loader2, UserPlus } from 'lucide-react';
 import { useNotifications, Notification } from '../hooks/useNotifications';
 
 interface NotificationListProps {
@@ -18,6 +18,8 @@ const getNotificationIcon = (type: Notification['type']) => {
       return <Award className="w-5 h-5 text-yellow-500" />;
     case 'like':
       return <Heart className="w-5 h-5 text-red-500" />;
+    case 'follow':
+      return <UserPlus className="w-5 h-5 text-purple-500" />;
     case 'system':
       return <Info className="w-5 h-5 text-gray-500" />;
     default:

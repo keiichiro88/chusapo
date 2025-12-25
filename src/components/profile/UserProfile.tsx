@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Calendar, 
@@ -11,7 +11,13 @@ import {
   BarChart3,
   ArrowLeft,
   Eye,
-  CheckCircle
+  CheckCircle,
+  UserPlus,
+  UserMinus,
+  Users,
+  Lock,
+  X,
+  Loader2
 } from 'lucide-react';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
 import { useMultipleProfiles } from '../../hooks/useMultipleProfiles';
@@ -19,6 +25,7 @@ import { useGratitude } from '../../hooks/useGratitude';
 import { useUser } from '../../hooks/useUser';
 import { useDataProvider } from '../../hooks/useDataProvider';
 import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
+import { useFollows, FollowUser } from '../../hooks/useFollows';
 import AchievementBadge from '../AchievementBadge';
 import SocialLinks from '../SocialLinks';
 
@@ -32,6 +39,8 @@ interface UserProfileProps {
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onEditProfile, onQuestionSelect }) => {
   const [activeTab, setActiveTab] = useState('posts');
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
   const { getUserProfile } = useMultipleProfiles();
   const { getUserGratitudeCount, getUserTopTitle, getUserAchievements } = useGratitude();
   const { users } = useUser();
@@ -41,6 +50,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
   // 認証ユーザー情報を渡してプロフィール設定を取得
   const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
   const { settings } = useProfileSettings(authUserInfo);
+  
+  // フォロー機能
+  const {
+    isFollowing,
+    followCounts,
+    privacySettings,
+    followers,
+    following,
+    isLoading: followLoading,
+    isActionLoading,
+    toggleFollow,
+    fetchFollowers,
+    fetchFollowing,
+    isOwnProfile: isOwnFollowProfile,
+    canViewFollowers,
+    canViewFollowing,
+    isAuthenticated: isFollowAuthenticated,
+  } = useFollows(userId);
 
   // ============================================
   // データソースに応じてプロフィール情報を取得
@@ -137,13 +164,49 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
     ? !userName || userName === supabaseUser.name
     : !userName || userName === settings.name;
 
-  // ダミー統計データ
+  // 統計データ（フォロー数は実データを使用）
   const stats = {
-    posts: 145,
+    posts: userQuestions.length,
     answers: 298,
     likes: 1856,
-    following: 89,
-    followers: 2341
+    following: followCounts.following_count,
+    followers: followCounts.followers_count
+  };
+
+  // フォロワー一覧モーダルを開く
+  const handleOpenFollowersModal = () => {
+    if (!isFollowAuthenticated) {
+      // 未ログイン時はログイン誘導（または何もしない）
+      return;
+    }
+    if (!canViewFollowers && !isOwnProfile) {
+      // 非公開の場合は開けない
+      return;
+    }
+    if (userId) {
+      fetchFollowers(userId);
+    }
+    setShowFollowersModal(true);
+  };
+
+  // フォロー中一覧モーダルを開く
+  const handleOpenFollowingModal = () => {
+    if (!isFollowAuthenticated) {
+      return;
+    }
+    if (!canViewFollowing && !isOwnProfile) {
+      return;
+    }
+    if (userId) {
+      fetchFollowing(userId);
+    }
+    setShowFollowingModal(true);
+  };
+
+  // フォローボタンクリック
+  const handleFollowClick = async () => {
+    if (!userId) return;
+    await toggleFollow(userId);
   };
 
   const renderBadge = () => {
@@ -218,20 +281,77 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
                 <div className="text-lg font-bold text-emerald-600">{userGratitudeCount}</div>
                 <div className="text-sm text-gray-500">感謝</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">{stats.following}</div>
+              {/* フォロワー数 */}
+              <button 
+                onClick={handleOpenFollowersModal}
+                className={`text-center ${isFollowAuthenticated && (canViewFollowers || isOwnProfile) ? 'hover:opacity-70 cursor-pointer' : 'cursor-default'}`}
+                disabled={!isFollowAuthenticated || (!canViewFollowers && !isOwnProfile)}
+              >
+                <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
+                  {stats.followers}
+                  {!canViewFollowers && !isOwnProfile && (
+                    <Lock className="h-3 w-3 ml-1 text-gray-400" />
+                  )}
+                </div>
+                <div className="text-sm text-gray-500">フォロワー</div>
+              </button>
+              {/* フォロー中数 */}
+              <button 
+                onClick={handleOpenFollowingModal}
+                className={`text-center ${isFollowAuthenticated && (canViewFollowing || isOwnProfile) ? 'hover:opacity-70 cursor-pointer' : 'cursor-default'}`}
+                disabled={!isFollowAuthenticated || (!canViewFollowing && !isOwnProfile)}
+              >
+                <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
+                  {stats.following}
+                  {!canViewFollowing && !isOwnProfile && (
+                    <Lock className="h-3 w-3 ml-1 text-gray-400" />
+                  )}
+                </div>
                 <div className="text-sm text-gray-500">フォロー中</div>
-              </div>
+              </button>
             </div>
 
             {/* アクションボタン */}
             <div className="flex space-x-2">
-              <button
-                onClick={onEditProfile}
-                className="flex-1 px-4 py-1.5 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition-colors text-sm text-gray-700"
-              >
-                プロフィールを編集
-              </button>
+              {isOwnProfile ? (
+                <button
+                  onClick={onEditProfile}
+                  className="flex-1 px-4 py-1.5 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition-colors text-sm text-gray-700"
+                >
+                  プロフィールを編集
+                </button>
+              ) : isFollowAuthenticated ? (
+                <button
+                  onClick={handleFollowClick}
+                  disabled={isActionLoading}
+                  className={`flex-1 px-4 py-1.5 rounded-md font-medium transition-colors text-sm flex items-center justify-center ${
+                    isFollowing
+                      ? 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-red-300 hover:text-red-600'
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  }`}
+                >
+                  {isActionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isFollowing ? (
+                    <>
+                      <UserMinus className="h-4 w-4 mr-1" />
+                      フォロー中
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      フォローする
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  className="flex-1 px-4 py-1.5 border border-gray-300 rounded-md font-medium text-sm text-gray-400 cursor-not-allowed"
+                  disabled
+                >
+                  ログインしてフォロー
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -511,6 +631,133 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
             </div>
           </div>
         )}
+      </div>
+
+      {/* フォロワー一覧モーダル */}
+      {showFollowersModal && (
+        <FollowListModal
+          title="フォロワー"
+          users={followers}
+          isLoading={followLoading}
+          isPrivate={!canViewFollowers && !isOwnProfile}
+          onClose={() => setShowFollowersModal(false)}
+        />
+      )}
+
+      {/* フォロー中一覧モーダル */}
+      {showFollowingModal && (
+        <FollowListModal
+          title="フォロー中"
+          users={following}
+          isLoading={followLoading}
+          isPrivate={!canViewFollowing && !isOwnProfile}
+          onClose={() => setShowFollowingModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+/**
+ * フォロワー/フォロー中一覧モーダル
+ */
+interface FollowListModalProps {
+  title: string;
+  users: FollowUser[];
+  isLoading: boolean;
+  isPrivate: boolean;
+  onClose: () => void;
+}
+
+const FollowListModal: React.FC<FollowListModalProps> = ({
+  title,
+  users,
+  isLoading,
+  isPrivate,
+  onClose,
+}) => {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
+        {/* ヘッダー */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* コンテンツ */}
+        <div className="overflow-y-auto max-h-[60vh]">
+          {isPrivate ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <Lock className="h-12 w-12 text-gray-300 mb-4" />
+              <p className="text-gray-500 text-center">
+                このユーザーの{title}一覧は非公開です
+              </p>
+            </div>
+          ) : isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+          ) : users.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <Users className="h-12 w-12 text-gray-300 mb-4" />
+              <p className="text-gray-500 text-center">
+                {title}はまだいません
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {users.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center p-4 hover:bg-gray-50 transition-colors"
+                >
+                  {/* アバター */}
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                    {user.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="text-white font-bold">
+                        {user.name.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ユーザー情報 */}
+                  <div className="ml-3 flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">
+                      {user.name}
+                    </p>
+                    {user.speciality && (
+                      <p className="text-sm text-gray-500 truncate">
+                        {user.speciality}
+                      </p>
+                    )}
+                    {user.bio && (
+                      <p className="text-xs text-gray-400 truncate mt-0.5">
+                        {user.bio}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* フォロワー数 */}
+                  <div className="text-right text-xs text-gray-500 ml-2">
+                    <div>{user.followers_count} フォロワー</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
