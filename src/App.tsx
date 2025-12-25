@@ -366,6 +366,7 @@ function App() {
               questions={questionsWithAnswerCount}
               answers={answers}
               onSubmitAnswer={handleSubmitAnswer}
+              onUserProfileClick={handleUserProfileClick}
               onBack={() => setActiveSection('home')}
             />
           ) : activeSection === 'guidelines' ? (

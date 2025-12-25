@@ -17,6 +17,8 @@ import {
   Shield
 } from 'lucide-react';
 import { Question, Answer } from '../types';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useProfileSettings } from '../hooks/useProfileSettings';
 
 interface User {
   id: string;
@@ -55,8 +57,6 @@ interface QuestionDetailProps {
 
 interface AnswerFormData {
   content: string;
-  author: string;
-  authorRole: string;
 }
 
 const QuestionDetail: React.FC<QuestionDetailProps> = ({ 
@@ -80,11 +80,15 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
   onLoadMoreAnswers,
   totalAnswerCount
 }) => {
+  const { user: supabaseAppUser, isAuthenticated: isSupabaseAuthenticated } = useSupabaseAuth();
+  const authUserInfo = supabaseAppUser
+    ? { id: supabaseAppUser.id, name: supabaseAppUser.name, role: supabaseAppUser.role }
+    : null;
+  const { settings: myProfileSettings } = useProfileSettings(authUserInfo);
+
   const [showAnswerForm, setShowAnswerForm] = useState(false);
   const [answerForm, setAnswerForm] = useState<AnswerFormData>({
-    content: '',
-    author: currentUser?.name || '',
-    authorRole: currentUser?.role || ''
+    content: ''
   });
   const answersRef = React.useRef<HTMLDivElement>(null);
   const [sparkleAnimations, setSparkleAnimations] = useState<{[key: string]: boolean}>({});
@@ -93,6 +97,25 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
   const [answerToRemove, setAnswerToRemove] = useState<string | null>(null);
   // 感謝済み状態のローカルキャッシュ（アニメーション用）
   const [gratitudeCache, setGratitudeCache] = useState<{[key: string]: boolean}>({});
+
+  // 回答者情報（入力不要：ログイン中ユーザーから自動）
+  const effectiveUser: User | null = (isSupabaseAuthenticated && supabaseAppUser)
+    ? {
+        id: supabaseAppUser.id,
+        name: myProfileSettings.name || supabaseAppUser.name,
+        role: myProfileSettings.role || supabaseAppUser.role
+      }
+    : currentUser;
+
+  const canPostAnswer = !!effectiveUser;
+
+  const openProfileFromModal = (authorName: string) => {
+    if (!onUserProfileClick) return;
+    onClose();
+    setTimeout(() => {
+      onUserProfileClick(authorName);
+    }, 100);
+  };
 
   // Props からの回答データをこの質問用にフィルタリング & ソート
   const questionAnswers = answers
@@ -146,18 +169,21 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
     e.preventDefault();
     if (!answerForm.content.trim()) return;
 
+    if (!effectiveUser) {
+      alert('回答を投稿するにはログインが必要です。');
+      return;
+    }
+
     const result = await onAddAnswer({
       questionId: question.id,
       content: answerForm.content,
-      author: answerForm.author || '匿名ユーザー',
-      authorRole: answerForm.authorRole || '医療従事者'
-    }, currentUser?.id);
+      author: effectiveUser.name,
+      authorRole: effectiveUser.role
+    }, effectiveUser.id);
 
     if (result.success) {
       setAnswerForm({ 
-        content: '', 
-        author: currentUser?.name || '', 
-        authorRole: currentUser?.role || '' 
+        content: ''
       });
       setShowAnswerForm(false);
     } else {
@@ -485,10 +511,20 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
               
               {!isMyQuestion && (
                 <button 
-                  onClick={() => setShowAnswerForm(!showAnswerForm)}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                  onClick={() => {
+                    if (!canPostAnswer) {
+                      alert('回答を投稿するにはログインが必要です。');
+                      return;
+                    }
+                    setShowAnswerForm(!showAnswerForm);
+                  }}
+                  className={`px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-2xl transition-all duration-200 shadow-lg ${
+                    canPostAnswer
+                      ? 'hover:from-blue-600 hover:to-blue-700 hover:scale-105 hover:shadow-xl'
+                      : 'opacity-60 cursor-not-allowed'
+                  }`}
                 >
-                  質問に回答する
+                  {canPostAnswer ? '質問に回答する' : 'ログインして回答'}
                 </button>
               )}
               {isMyQuestion && (
@@ -504,22 +540,47 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
             <div className="bg-gray-50 rounded-3xl p-6 mb-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4">回答を投稿</h3>
               <form onSubmit={handleAnswerSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    value={answerForm.author}
-                    onChange={(e) => setAnswerForm(prev => ({ ...prev, author: e.target.value }))}
-                    placeholder="あなたのお名前（任意）"
-                    className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium"
-                  />
-                  <input
-                    type="text"
-                    value={answerForm.authorRole}
-                    onChange={(e) => setAnswerForm(prev => ({ ...prev, authorRole: e.target.value }))}
-                    placeholder="職種・役職（任意）"
-                    className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium"
-                  />
-                </div>
+                {/* 回答者（自動） */}
+                {effectiveUser && (
+                  <div className="bg-white rounded-2xl border-2 border-gray-200 p-4">
+                    {(() => {
+                      const avatar = generateUserAvatar(effectiveUser.name, effectiveUser.role);
+                      const badge = getExpertBadge(effectiveUser.role);
+                      return (
+                        <div className="flex items-center justify-between gap-3">
+                          <button
+                            type="button"
+                            className="flex items-center space-x-3 text-left hover:opacity-80 transition-opacity"
+                            onClick={() => openProfileFromModal(effectiveUser.name)}
+                            title="あなたのプロフィールを表示"
+                          >
+                            <div className="relative">
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-[2px] shadow-md">
+                                <div
+                                  className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-inner`}
+                                >
+                                  {avatar.initials}
+                                </div>
+                              </div>
+                              {badge && (
+                                <div className={`absolute -bottom-1 -right-1 ${badge.bg} ${badge.color} rounded-full p-1 shadow-lg border-2 border-white`}>
+                                  <badge.icon className="h-2.5 w-2.5" />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold text-gray-900">{effectiveUser.name}</div>
+                              <div className="text-sm text-gray-600 font-medium">{effectiveUser.role}</div>
+                            </div>
+                          </button>
+                          <div className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                            プロフィールから自動
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
                 <textarea
                   value={answerForm.content}
                   onChange={(e) => setAnswerForm(prev => ({ ...prev, content: e.target.value }))}
@@ -625,7 +686,19 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                           })()}
                         </div>
                         
-                        <div>
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => openProfileFromModal(answer.author)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              openProfileFromModal(answer.author);
+                            }
+                          }}
+                          title={`${answer.author}さんのプロフィールを表示`}
+                        >
                           <div className="flex items-center space-x-2 flex-wrap mb-1">
                             <h4 className="font-black text-gray-900">{answer.author}</h4>
                             {/* X風認証バッジ */}

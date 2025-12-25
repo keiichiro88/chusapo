@@ -7,7 +7,6 @@ import {
   CheckCircle, 
   AlertCircle,
   Send,
-  User,
   Calendar,
   Tag,
   Sparkles,
@@ -18,6 +17,9 @@ import {
 } from 'lucide-react';
 import { Question, Answer } from '../types';
 import SearchAndFilter, { FilterOptions } from './SearchAndFilter';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useProfileSettings } from '../hooks/useProfileSettings';
+import { useUser } from '../hooks/useUser';
 
 interface AnswerQuestionsProps {
   questions: Question[];
@@ -25,6 +27,7 @@ interface AnswerQuestionsProps {
   onSubmitAnswer: (questionId: string, answerContent: string, authorName: string, authorRole: string) => void;
   onBack: () => void;
   onBestAnswerSelect?: (answerId: string, questionId: string) => void;
+  onUserProfileClick?: (authorName: string) => void;
 }
 
 const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({ 
@@ -32,13 +35,19 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
   answers, 
   onSubmitAnswer, 
   onBack,
-  onBestAnswerSelect
+  onBestAnswerSelect,
+  onUserProfileClick
 }) => {
+  const { user: supabaseAppUser, isAuthenticated: isSupabaseAuthenticated } = useSupabaseAuth();
+  const authUserInfo = supabaseAppUser
+    ? { id: supabaseAppUser.id, name: supabaseAppUser.name, role: supabaseAppUser.role }
+    : null;
+  const { settings: myProfileSettings } = useProfileSettings(authUserInfo);
+  const { currentUser } = useUser();
+
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [answerForm, setAnswerForm] = useState({
-    content: '',
-    author: '',
-    authorRole: ''
+    content: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
@@ -191,18 +200,29 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
     e.preventDefault();
     if (!selectedQuestion || !answerForm.content.trim()) return;
 
+    const canAnswer = isSupabaseAuthenticated || !!currentUser;
+    if (!canAnswer) {
+      alert('回答を投稿するにはログインが必要です。');
+      return;
+    }
+
+    const authorName = isSupabaseAuthenticated
+      ? (myProfileSettings.name || supabaseAppUser?.name || 'ユーザー')
+      : (currentUser?.name || '匿名回答者');
+    const authorRole = isSupabaseAuthenticated
+      ? (myProfileSettings.role || supabaseAppUser?.role || '医療従事者')
+      : (currentUser?.role || '医療従事者');
+
     onSubmitAnswer(
       selectedQuestion.id,
       answerForm.content,
-      answerForm.author || '匿名回答者',
-      answerForm.authorRole || '専門家'
+      authorName,
+      authorRole
     );
 
     // フォームをリセット
     setAnswerForm({
-      content: '',
-      author: '',
-      authorRole: ''
+      content: ''
     });
 
     // 次の質問に移動（または一覧に戻る）
@@ -363,7 +383,12 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
                       const avatar = generateUserAvatar(answer.author, answer.authorRole);
                       const expertBadge = getExpertBadge(answer.authorRole);
                       return (
-                        <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          className="flex items-center space-x-3 text-left hover:opacity-80 transition-opacity"
+                          onClick={() => onUserProfileClick?.(answer.author)}
+                          title={`${answer.author}さんのプロフィールを表示`}
+                        >
                           {/* アバター */}
                           <div className="relative">
                             <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-md">
@@ -394,7 +419,7 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
                               <span className="text-gray-500 text-xs">認証済み</span>
                             </div>
                           </div>
-                        </div>
+                        </button>
                       );
                     })()}
                     {answer.isAccepted && (
@@ -431,32 +456,67 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
           </div>
 
           <form onSubmit={handleSubmitAnswer} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  あなたのお名前
-                </label>
-                <input
-                  type="text"
-                  value={answerForm.author}
-                  onChange={(e) => setAnswerForm(prev => ({ ...prev, author: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="匿名回答者"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  職種・専門分野
-                </label>
-                <input
-                  type="text"
-                  value={answerForm.authorRole}
-                  onChange={(e) => setAnswerForm(prev => ({ ...prev, authorRole: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="例: 看護師、医師、技師など"
-                />
-              </div>
-            </div>
+            {/* 回答者（自動） */}
+            {(() => {
+              const canAnswer = isSupabaseAuthenticated || !!currentUser;
+              const authorName = isSupabaseAuthenticated
+                ? (myProfileSettings.name || supabaseAppUser?.name || 'ユーザー')
+                : (currentUser?.name || '匿名回答者');
+              const authorRole = isSupabaseAuthenticated
+                ? (myProfileSettings.role || supabaseAppUser?.role || '医療従事者')
+                : (currentUser?.role || '医療従事者');
+
+              const avatar = generateUserAvatar(authorName, authorRole);
+              const badge = getExpertBadge(authorRole);
+
+              return (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      className={`flex items-center space-x-3 text-left ${
+                        canAnswer ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+                      }`}
+                      onClick={() => {
+                        if (!canAnswer) return;
+                        onUserProfileClick?.(authorName);
+                      }}
+                      title={canAnswer ? 'あなたのプロフィールを表示' : 'ログインするとプロフィールが表示できます'}
+                      disabled={!canAnswer}
+                    >
+                      <div className="relative">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-md">
+                          <div
+                            className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-inner`}
+                          >
+                            {avatar.initials}
+                          </div>
+                        </div>
+                        {badge && (
+                          <div
+                            className={`absolute -bottom-0.5 -right-0.5 ${badge.bg} ${badge.color} rounded-full p-0.5 shadow-md border border-white`}
+                          >
+                            <badge.icon className="h-2 w-2" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">{authorName}</div>
+                        <div className="text-sm text-gray-600 font-medium">{authorRole}</div>
+                      </div>
+                    </button>
+                    <div className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                      プロフィールから自動
+                    </div>
+                  </div>
+                  {!canAnswer && (
+                    <p className="text-xs text-red-600 font-medium mt-2">
+                      回答を投稿するにはログインが必要です
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-3">
@@ -492,7 +552,7 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={!answerForm.content.trim()}
+                disabled={!(isSupabaseAuthenticated || !!currentUser) || !answerForm.content.trim()}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 <Send className="h-5 w-5" />
