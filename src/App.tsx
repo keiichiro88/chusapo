@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import {
   Syringe,
   MessageCircle,
@@ -62,25 +62,47 @@ function App() {
   if (isAuthTest) {
     return <AuthTest />;
   }
+
+  const normalizeSection = (section: string | null) => {
+    if (section === 'nurse-career-diagnosis' || section === 'mbti' || section === 'self-analysis') {
+      return 'nurse-career-diagnosis';
+    }
+    const allowed = new Set([
+      'home',
+      'answer-questions',
+      'quiz',
+      'nurse-career-diagnosis',
+      'about-chusapo',
+      'guidelines',
+      'profile',
+    ]);
+    return section && allowed.has(section) ? section : 'home';
+  };
+
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [scrollToAnswers, setScrollToAnswers] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<FilterOptions>({
-    category: ''
+  const [filters, setFilters] = useState<FilterOptions>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return { category: params.get('category') || '' };
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    const section = params.get('section');
-    if (section === 'nurse-career-diagnosis' || section === 'mbti' || section === 'self-analysis') {
-      return 'nurse-career-diagnosis';
-    }
-    return 'home';
+    return normalizeSection(params.get('section'));
   });
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showUserProfile, setShowUserProfile] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [showUserProfile, setShowUserProfile] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeSection(params.get('section')) === 'profile';
+  });
+  const [selectedUser, setSelectedUser] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = normalizeSection(params.get('section'));
+    if (section !== 'profile') return null;
+    return params.get('user');
+  });
   const [savedScrollPosition, setSavedScrollPosition] = useState<number>(0);
   const [displayedQuestionsCount, setDisplayedQuestionsCount] = useState(10);  // 初期表示件数
 
@@ -118,6 +140,71 @@ function App() {
 
   const isDev = import.meta.env.DEV;
   const blockedSet = useMemo(() => new Set(blockedUserIds), [blockedUserIds]);
+
+  // 画面状態をURLへ反映（リロードしても同じ画面に戻れるようにする）
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+
+      // section
+      if (activeSection === 'home') {
+        params.delete('section');
+      } else {
+        params.set('section', activeSection);
+      }
+
+      // category（ホームの時だけ）
+      if (activeSection === 'home' && filters.category) {
+        params.set('category', filters.category);
+      } else {
+        params.delete('category');
+      }
+
+      // profile user（プロフィールの時だけ）
+      if (activeSection === 'profile') {
+        if (selectedUser) params.set('user', selectedUser);
+        else params.delete('user');
+      } else {
+        params.delete('user');
+      }
+
+      // キャリア診断AI以外では share 用の type を消す
+      if (activeSection !== 'nurse-career-diagnosis') {
+        params.delete('type');
+      }
+
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // no-op
+    }
+  }, [activeSection, filters.category, selectedUser]);
+
+  // ブラウザ戻る/進むでもURLに追従（保険）
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const nextSection = normalizeSection(params.get('section'));
+      setActiveSection(nextSection);
+
+      if (nextSection === 'home') {
+        setFilters((prev) => ({ ...prev, category: params.get('category') || '' }));
+      } else {
+        setFilters((prev) => ({ ...prev, category: '' }));
+      }
+
+      if (nextSection === 'profile') {
+        setSelectedUser(params.get('user'));
+        setShowUserProfile(true);
+      } else {
+        setSelectedUser(null);
+        setShowUserProfile(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // 認証が必要な操作のハンドラ
   const handleAuthRequiredAction = (action: () => void, actionName: string = '操作') => {
@@ -358,18 +445,14 @@ function App() {
       return;
     }
 
-    // シェアURL用の section パラメータを同期（キャリア診断AIのみ）
-    try {
-      const url = new URL(window.location.href);
-      if (section === 'nurse-career-diagnosis') {
-        url.searchParams.set('section', 'nurse-career-diagnosis');
-      } else if (url.searchParams.get('section') === 'nurse-career-diagnosis') {
-        url.searchParams.delete('section');
-        url.searchParams.delete('type');
-      }
-      window.history.replaceState({}, '', url.toString());
-    } catch {
-      // no-op
+    // プロフィール遷移（メニューからは「自分のプロフィール」を想定）
+    if (section === 'profile') {
+      setSelectedUser(null);
+      setShowUserProfile(true);
+    } else if (activeSection === 'profile') {
+      // 他画面へ移動したら、次回プロフィール表示は「自分」に戻す
+      setSelectedUser(null);
+      setShowUserProfile(false);
     }
 
     // ホーム画面以外からホーム画面に戻る場合はスクロール位置を保持
@@ -424,7 +507,7 @@ function App() {
       <Header
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}
-        onProfileClick={() => setActiveSection('profile')}
+        onProfileClick={() => handleNavigate('profile')}
         onEditProfileClick={() => setShowEditProfile(true)}
       />
 
