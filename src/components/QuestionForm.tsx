@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { X, AlertCircle, Sparkles } from 'lucide-react';
 import { Question } from '../types';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useProfileSettings } from '../hooks/useProfileSettings';
 
 interface User {
   id: string;
@@ -82,6 +84,21 @@ function buildStructuredContent(params: { category: string; title: string; conte
 }
 
 const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, currentUser }) => {
+  const { user: supabaseAppUser, isAuthenticated: isSupabaseAuthenticated } = useSupabaseAuth();
+  const authUserInfo = supabaseAppUser
+    ? { id: supabaseAppUser.id, name: supabaseAppUser.name, role: supabaseAppUser.role }
+    : null;
+  // モーダルが開いている時だけプロフィールを取得（無駄な通信を避ける）
+  const { settings: myProfileSettings } = useProfileSettings(isOpen ? authUserInfo : null);
+  const effectiveUser: User | null =
+    isSupabaseAuthenticated && supabaseAppUser
+      ? {
+          id: supabaseAppUser.id,
+          name: myProfileSettings.name || supabaseAppUser.name,
+          role: myProfileSettings.role || supabaseAppUser.role,
+        }
+      : currentUser;
+
   // ローカルストレージから下書きを復元
   const loadDraft = () => {
     try {
@@ -99,8 +116,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
           issues: Array.isArray(draft?.issues) ? draft.issues.filter((v: any) => typeof v === 'string') : [],
           hasPhoto: draft?.hasPhoto === 'あり' || draft?.hasPhoto === 'なし' ? draft.hasPhoto : '',
           photoNote: draft?.photoNote || '',
-          author: currentUser?.name || '匿名ユーザー',
-          authorRole: currentUser?.role || ''
         };
       }
     } catch (error) {
@@ -117,8 +132,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
       issues: [] as string[],
       hasPhoto: '' as '' | 'あり' | 'なし',
       photoNote: '',
-      author: currentUser?.name || '匿名ユーザー',
-      authorRole: currentUser?.role || ''
     };
   };
 
@@ -293,6 +306,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
       alert('投稿前に「個人情報を含めない」確認にチェックしてください。');
       return;
     }
+
+    if (!effectiveUser) {
+      alert('質問を投稿するにはログインが必要です。');
+      return;
+    }
     
     // カテゴリーをタグとして設定
     const finalTags = [];
@@ -320,8 +338,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
       title: formData.title,
       content: finalContent,
       category: formData.category, // Supabase用にcategoryを追加
-      author: formData.author || '匿名ユーザー',
-      authorRole: formData.authorRole || '医療従事者',
+      author: effectiveUser.name,
+      authorRole: effectiveUser.role || '医療従事者',
       tags: finalTags
     };
     
@@ -342,8 +360,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
       issues: [],
       hasPhoto: '',
       photoNote: '',
-      author: currentUser?.name || '匿名ユーザー',
-      authorRole: currentUser?.role || ''
     });
     setPrivacyConfirmed(false);
     
@@ -411,16 +427,16 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
             />
           </div>
 
-          {/* ログイン中は自動入力（表示のみ）、未ログイン時は編集可能 */}
-          {currentUser ? (
+          {/* 投稿者情報（入力不要：ログイン中ユーザーから自動） */}
+          {effectiveUser ? (
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  {currentUser.name.charAt(0)}
+                  {effectiveUser.name.charAt(0)}
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-gray-900">{currentUser.name}</p>
-                  <p className="text-sm text-gray-600">{currentUser.role || '医療従事者'}</p>
+                  <p className="font-bold text-gray-900">{effectiveUser.name}</p>
+                  <p className="text-sm text-gray-600">{effectiveUser.role || '医療従事者'}</p>
                 </div>
                 <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
                   ログイン中
@@ -428,32 +444,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
-                  あなたのお名前
-                </label>
-                <input
-                  type="text"
-                  value={formData.author}
-                  onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                  className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium"
-                  placeholder="匿名ユーザー"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
-                  職種・役職
-                </label>
-                <input
-                  type="text"
-                  value={formData.authorRole}
-                  onChange={(e) => setFormData(prev => ({ ...prev, authorRole: e.target.value }))}
-                  className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium"
-                  placeholder="例: 看護師、医師、技師など"
-                />
-              </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+              <p className="text-sm font-bold text-gray-800 mb-1">ログインが必要です</p>
+              <p className="text-xs text-gray-600">
+                投稿者名と職種はログイン中のプロフィール情報を自動で使用します。
+              </p>
             </div>
           )}
 
