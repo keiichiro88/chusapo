@@ -26,6 +26,7 @@ import { useUser } from '../../hooks/useUser';
 import { useDataProvider } from '../../hooks/useDataProvider';
 import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import { useFollows, FollowUser } from '../../hooks/useFollows';
+import { supabase } from '../../lib/supabase';
 import AchievementBadge from '../AchievementBadge';
 import SocialLinks from '../SocialLinks';
 
@@ -37,10 +38,13 @@ interface UserProfileProps {
   onQuestionSelect?: (questionId: string) => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onEditProfile, onQuestionSelect }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName, onBack, onEditProfile, onQuestionSelect }) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [targetUserId, setTargetUserId] = useState<string | undefined>(propUserId);
+  const [targetProfile, setTargetProfile] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const { getUserProfile } = useMultipleProfiles();
   const { getUserGratitudeCount, getUserTopTitle, getUserAchievements } = useGratitude();
   const { users } = useUser();
@@ -50,6 +54,44 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
   // 認証ユーザー情報を渡してプロフィール設定を取得
   const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
   const { settings } = useProfileSettings(authUserInfo);
+
+  // ユーザー名からプロフィールを取得（Supabase）
+  useEffect(() => {
+    const fetchProfileByName = async () => {
+      // 自分のプロフィールの場合
+      if (!userName || (supabaseUser && userName === supabaseUser.name)) {
+        setTargetUserId(supabaseUser?.id);
+        setTargetProfile(null);
+        return;
+      }
+
+      // 他のユーザーのプロフィールを取得
+      setIsLoadingProfile(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('name', userName)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Profile fetch error:', error);
+          return;
+        }
+
+        if (data) {
+          setTargetUserId(data.id);
+          setTargetProfile(data);
+        }
+      } catch (err) {
+        console.error('Profile fetch error:', err);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfileByName();
+  }, [userName, supabaseUser]);
   
   // フォロー機能
   const {
@@ -67,7 +109,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
     canViewFollowers,
     canViewFollowing,
     isAuthenticated: isFollowAuthenticated,
-  } = useFollows(userId);
+  } = useFollows(targetUserId);
 
   // ============================================
   // データソースに応じてプロフィール情報を取得
@@ -75,7 +117,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
 
   // Supabase認証時は supabaseUser を使用
   // 未認証時（デモモード）は LocalStorage の users を使用
-  const realUser = isAuthenticated && supabaseUser && (!userName || userName === supabaseUser.name)
+  // Supabaseから取得した他ユーザーのプロフィールがある場合はそれを使用
+  const realUser = targetProfile
+    ? {
+        id: targetProfile.id,
+        name: targetProfile.name,
+        role: targetProfile.role || '医療従事者',
+        email: '',
+        totalGratitude: targetProfile.total_gratitude || 0
+      }
+    : isAuthenticated && supabaseUser && (!userName || userName === supabaseUser.name)
     ? {
         id: supabaseUser.id,
         name: supabaseUser.name,
@@ -91,7 +142,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
   
   // 実際のユーザーデータから感謝システム情報を取得
   // Supabase認証時は profiles の total_gratitude を使用
-  const userGratitudeCount = isAuthenticated && supabaseUser && (!userName || userName === supabaseUser.name)
+  const userGratitudeCount = targetProfile
+    ? (targetProfile.total_gratitude || 0)
+    : isAuthenticated && supabaseUser && (!userName || userName === supabaseUser.name)
     ? (supabaseUser.totalGratitude || 0)
     : (realUser ? getUserGratitudeCount(realUser.id) : 0);
   
@@ -99,11 +152,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
   const userAchievements = !isAuthenticated && realUser ? getUserAchievements(realUser.id) : [];
   
   // ユーザーの質問を取得
-  const userQuestions = questions.filter(q => q.author === userName || q.authorId === realUser?.id);
+  const userQuestions = questions.filter(q => q.author === userName || q.authorId === realUser?.id || q.authorId === targetUserId);
   
   // プロフィールが存在しない場合、ユーザーデータから動的に生成
-  let currentProfile = profileData || settings;
-  if (!profileData && realUser && userName) {
+  let currentProfile = targetProfile ? {
+    avatarImage: targetProfile.avatar_url,
+    backgroundImage: targetProfile.background_url,
+    avatarGradient: targetProfile.avatar_gradient || 'from-purple-500 to-pink-500',
+    backgroundGradient: targetProfile.background_gradient || 'from-blue-400 via-blue-500 to-blue-600',
+    name: targetProfile.name,
+    bio: targetProfile.bio || '',
+    role: targetProfile.role || '医療従事者',
+    location: targetProfile.location || '',
+    website: targetProfile.website || '',
+    speciality: targetProfile.speciality || '',
+    experience: targetProfile.experience || '',
+    workplace: targetProfile.workplace || '',
+    socialLinks: targetProfile.social_links || {}
+  } : profileData || settings;
+  
+  if (!profileData && !targetProfile && realUser && userName) {
     // 新規ユーザーの場合、基本プロフィールを動的に生成
     const colors = [
       'from-blue-500 to-indigo-600',
@@ -183,8 +251,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
       // 非公開の場合は開けない
       return;
     }
-    if (userId) {
-      fetchFollowers(userId);
+    if (targetUserId) {
+      fetchFollowers(targetUserId);
     }
     setShowFollowersModal(true);
   };
@@ -197,16 +265,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onE
     if (!canViewFollowing && !isOwnProfile) {
       return;
     }
-    if (userId) {
-      fetchFollowing(userId);
+    if (targetUserId) {
+      fetchFollowing(targetUserId);
     }
     setShowFollowingModal(true);
   };
 
   // フォローボタンクリック
   const handleFollowClick = async () => {
-    if (!userId) return;
-    await toggleFollow(userId);
+    if (!targetUserId) return;
+    await toggleFollow(targetUserId);
   };
 
   const renderBadge = () => {

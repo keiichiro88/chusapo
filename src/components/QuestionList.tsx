@@ -14,6 +14,7 @@ interface QuestionListProps {
   onLikeQuestion: (questionId: string) => void;
   isQuestionLiked?: (questionId: string) => boolean;
   isMyQuestion?: (questionId: string) => boolean;
+  onUserProfileClick?: (authorName: string) => void;
 }
 
 const QuestionList: React.FC<QuestionListProps> = ({ 
@@ -22,7 +23,8 @@ const QuestionList: React.FC<QuestionListProps> = ({
   onQuestionSelect,
   onLikeQuestion,
   isQuestionLiked = () => false,
-  isMyQuestion = () => false
+  isMyQuestion = () => false,
+  onUserProfileClick
 }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
@@ -121,6 +123,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                 onLike={() => onLikeQuestion(question.id)}
                 onViewDetail={() => onQuestionSelect(question)}
                 onViewAnswers={() => onQuestionSelect(question)}
+                onUserProfileClick={() => onUserProfileClick?.(question.author)}
                 isLiked={isQuestionLiked(question.id)}
                 isMyQuestion={isMyQuestion(question.authorId || '')}
               />
