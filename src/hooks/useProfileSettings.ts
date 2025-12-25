@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface ProfileSettings {
   avatarImage: string | null;
@@ -37,28 +37,108 @@ const DEFAULT_SETTINGS: ProfileSettings = {
   workplace: '総合病院'
 };
 
-export const useProfileSettings = () => {
-  const [settings, setSettings] = useState<ProfileSettings>(DEFAULT_SETTINGS);
+// 認証ユーザー情報の型（循環依存を避けるため独自定義）
+interface AuthUserInfo {
+  id: string;
+  name: string;
+  role: string;
+}
 
-  // ローカルストレージから設定を読み込み
-  useEffect(() => {
+// プロフィール設定更新イベント名
+const PROFILE_SETTINGS_UPDATE_EVENT = 'profileSettingsUpdated';
+
+// LocalStorageから設定を読み込むヘルパー関数
+const loadSettingsFromStorage = (authUser?: AuthUserInfo | null): ProfileSettings => {
+  if (authUser) {
+    const userStorageKey = `profileSettings_${authUser.id}`;
+    const savedSettings = localStorage.getItem(userStorageKey);
+    
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        return { 
+          ...DEFAULT_SETTINGS, 
+          ...parsed,
+          name: parsed.name || authUser.name || DEFAULT_SETTINGS.name,
+          role: parsed.role || authUser.role || DEFAULT_SETTINGS.role
+        };
+      } catch (error) {
+        console.error('Failed to parse profile settings:', error);
+        return {
+          ...DEFAULT_SETTINGS,
+          name: authUser.name,
+          role: authUser.role
+        };
+      }
+    } else {
+      return {
+        ...DEFAULT_SETTINGS,
+        name: authUser.name,
+        role: authUser.role
+      };
+    }
+  } else {
     const savedSettings = localStorage.getItem('profileSettings');
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        return { ...DEFAULT_SETTINGS, ...parsed };
       } catch (error) {
         console.error('Failed to parse profile settings:', error);
+        return DEFAULT_SETTINGS;
       }
     }
-  }, []);
+    return DEFAULT_SETTINGS;
+  }
+};
+
+export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
+  const [settings, setSettings] = useState<ProfileSettings>(DEFAULT_SETTINGS);
+  const [initialized, setInitialized] = useState(false);
+
+  // 初期化とauthUser変更時の設定読み込み
+  useEffect(() => {
+    const loaded = loadSettingsFromStorage(authUser);
+    setSettings(loaded);
+    setInitialized(true);
+  }, [authUser?.id]);
+
+  // 他のコンポーネントからの更新を監視
+  useEffect(() => {
+    if (!initialized) return;
+
+    const handleStorageUpdate = () => {
+      const loaded = loadSettingsFromStorage(authUser);
+      setSettings(loaded);
+    };
+
+    // カスタムイベントを監視
+    window.addEventListener(PROFILE_SETTINGS_UPDATE_EVENT, handleStorageUpdate);
+    
+    // storageイベントも監視（他のタブからの変更用）
+    window.addEventListener('storage', handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener(PROFILE_SETTINGS_UPDATE_EVENT, handleStorageUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
+  }, [authUser?.id, initialized]);
 
   // 設定を保存
-  const updateSettings = (newSettings: Partial<ProfileSettings>) => {
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    localStorage.setItem('profileSettings', JSON.stringify(updated));
-  };
+  const updateSettings = useCallback((newSettings: Partial<ProfileSettings>) => {
+    const storageKey = authUser ? `profileSettings_${authUser.id}` : 'profileSettings';
+    
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      return updated;
+    });
+    
+    // 他のコンポーネントに更新を通知（次のイベントループで実行）
+    setTimeout(() => {
+      window.dispatchEvent(new Event(PROFILE_SETTINGS_UPDATE_EVENT));
+    }, 0);
+  }, [authUser?.id]);
 
   return {
     settings,

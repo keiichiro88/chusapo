@@ -32,12 +32,15 @@ interface UserProfileProps {
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId, userName, onBack, onEditProfile, onQuestionSelect }) => {
   const [activeTab, setActiveTab] = useState('posts');
-  const { settings } = useProfileSettings();
   const { getUserProfile } = useMultipleProfiles();
   const { getUserGratitudeCount, getUserTopTitle, getUserAchievements } = useGratitude();
   const { users } = useUser();
   const { questions, isAuthenticated } = useDataProvider();
   const { user: supabaseUser } = useSupabaseAuth();
+  
+  // 認証ユーザー情報を渡してプロフィール設定を取得
+  const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
+  const { settings } = useProfileSettings(authUserInfo);
 
   // ============================================
   // データソースに応じてプロフィール情報を取得

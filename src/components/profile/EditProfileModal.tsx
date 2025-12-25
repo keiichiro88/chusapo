@@ -3,6 +3,7 @@ import { X, Camera, Upload, MapPin, Link as LinkIcon, User, Briefcase, Palette, 
 import Modal from '../auth/Modal';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
+import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import ImageCropModal from './ImageCropModal';
 import { generateAvatarGradient } from '../../utils/avatarUtils';
 
@@ -13,7 +14,11 @@ interface EditProfileModalProps {
 
 const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) => {
   const { currentUser, updateProfile } = useAuth();
-  const { settings, updateSettings } = useProfileSettings();
+  const { user: supabaseUser } = useSupabaseAuth();
+  
+  // 認証ユーザー情報を渡してプロフィール設定を取得
+  const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
+  const { settings, updateSettings } = useProfileSettings(authUserInfo);
   
   const [formData, setFormData] = useState({
     name: '',

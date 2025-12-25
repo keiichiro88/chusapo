@@ -12,6 +12,26 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
+const AUTH_REQUEST_TIMEOUT_MS = 15000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId: ReturnType<typeof setTimeout> = setTimeout(() => {
+      reject(new Error(message));
+    }, ms);
+
+    promise
+      .then((value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
+  });
+}
+
 // アプリで使うユーザー型
 export interface AppUser {
   id: string;
@@ -22,6 +42,21 @@ export interface AppUser {
   isEmailVerified: boolean;
   createdAt: Date;
   lastLoginAt: Date;
+}
+
+function toAppUser(user: SupabaseUser): AppUser {
+  const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'ユーザー';
+
+  return {
+    id: user.id,
+    email: user.email || '',
+    name: userName,
+    role: '医療従事者',
+    tier: 'basic',
+    isEmailVerified: !!user.email_confirmed_at,
+    createdAt: new Date(user.created_at || Date.now()),
+    lastLoginAt: new Date()
+  };
 }
 
 export const useSupabaseAuth = () => {
@@ -43,14 +78,11 @@ export const useSupabaseAuth = () => {
     // 現在のセッションを取得（タイムアウト付き）
     const getInitialSession = async () => {
       try {
-        // 3秒でタイムアウト
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('接続タイムアウト')), 3000);
-        });
-
-        const sessionPromise = supabase.auth.getSession();
-
-        const result = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: any }, error: any };
+        const result = (await withTimeout(
+          supabase.auth.getSession(),
+          3000,
+          '接続タイムアウト'
+        )) as { data: { session: any }; error: any };
         
         if (result.error) throw result.error;
 
@@ -58,7 +90,7 @@ export const useSupabaseAuth = () => {
         setSupabaseUser(result.data.session?.user ?? null);
 
         if (result.data.session?.user) {
-          await loadUserProfile(result.data.session.user.id);
+          setAppUser(toAppUser(result.data.session.user));
         }
       } catch (err) {
         console.error('セッション取得エラー:', err);
@@ -74,13 +106,13 @@ export const useSupabaseAuth = () => {
 
     // 認証状態の変更を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('認証状態変更:', event);
         setSession(session);
         setSupabaseUser(session?.user ?? null);
 
         if (session?.user) {
-          await loadUserProfile(session.user.id);
+          setAppUser(toAppUser(session.user));
         } else {
           setAppUser(null);
         }
@@ -94,37 +126,6 @@ export const useSupabaseAuth = () => {
   }, []);
 
   /**
-   * ユーザープロフィールをデータベースから読み込む
-   * ※ まだprofilesテーブルを作成していない場合はダミーデータを返す
-   */
-  const loadUserProfile = async (userId: string) => {
-    try {
-      // TODO: profilesテーブルからデータを取得
-      // const { data, error } = await supabase
-      //   .from('profiles')
-      //   .select('*')
-      //   .eq('id', userId)
-      //   .single();
-
-      // 現時点ではダミーデータを設定
-      const dummyProfile: AppUser = {
-        id: userId,
-        email: supabaseUser?.email || '',
-        name: supabaseUser?.email?.split('@')[0] || 'ユーザー',
-        role: '医療従事者',
-        tier: 'basic',
-        isEmailVerified: supabaseUser?.email_confirmed_at ? true : false,
-        createdAt: new Date(supabaseUser?.created_at || Date.now()),
-        lastLoginAt: new Date()
-      };
-
-      setAppUser(dummyProfile);
-    } catch (err) {
-      console.error('プロフィール読み込みエラー:', err);
-    }
-  };
-
-  /**
    * メール/パスワードでサインアップ
    *
    * @param email - メールアドレス
@@ -136,7 +137,8 @@ export const useSupabaseAuth = () => {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await withTimeout(
+        supabase.auth.signUp({
         email,
         password,
         options: {
@@ -144,7 +146,10 @@ export const useSupabaseAuth = () => {
             name: name // メタデータに名前を保存
           }
         }
-      });
+        }),
+        AUTH_REQUEST_TIMEOUT_MS,
+        'サインアップに時間がかかっています。ネットワークをご確認の上、もう一度お試しください。'
+      );
 
       if (error) throw error;
 
@@ -169,10 +174,14 @@ export const useSupabaseAuth = () => {
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email,
+          password
+        }),
+        AUTH_REQUEST_TIMEOUT_MS,
+        'ログインに時間がかかっています。ネットワークをご確認の上、もう一度お試しください。'
+      );
 
       if (error) throw error;
 
@@ -195,7 +204,11 @@ export const useSupabaseAuth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await withTimeout(
+        supabase.auth.signOut(),
+        AUTH_REQUEST_TIMEOUT_MS,
+        'ログアウトに時間がかかっています。ネットワークをご確認ください。'
+      );
       if (error) throw error;
 
       setAppUser(null);
@@ -219,9 +232,13 @@ export const useSupabaseAuth = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
+      const { error } = await withTimeout(
+        supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`
+        }),
+        AUTH_REQUEST_TIMEOUT_MS,
+        'パスワードリセットに時間がかかっています。ネットワークをご確認ください。'
+      );
 
       if (error) throw error;
 
