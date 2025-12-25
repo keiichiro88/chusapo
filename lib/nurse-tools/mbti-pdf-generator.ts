@@ -40,26 +40,31 @@ export async function generateMBTIPDFFromElement(
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 10;
   const contentWidth = pageWidth - margin * 2;
+  const headerHeight = 25;
+  const contentTop = 30; // ヘッダーの下
 
   // ヘッダーを描画
   const primaryColor: [number, number, number] = [20, 184, 166];
   const textColor: [number, number, number] = [30, 41, 59];
   const lightGray: [number, number, number] = [148, 163, 184];
 
-  // ヘッダー背景
-  pdf.setFillColor(...primaryColor);
-  pdf.rect(0, 0, pageWidth, 25, 'F');
+  const drawHeader = () => {
+    // ヘッダー背景
+    pdf.setFillColor(...primaryColor);
+    pdf.rect(0, 0, pageWidth, headerHeight, 'F');
 
-  // タイトル（英語で表示 - 日本語フォントがないため）
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(14);
-  pdf.text('Nurse Career Diagnosis AI', pageWidth / 2, 12, { align: 'center' });
-  pdf.setFontSize(10);
-  pdf.text(`MBTI Type: ${mbtiType} | Date: ${dateStr}`, pageWidth / 2, 20, { align: 'center' });
+    // タイトル（英語で表示 - 日本語フォントがないため）
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(14);
+    pdf.text('Nurse Career Diagnosis AI', pageWidth / 2, 12, { align: 'center' });
+    pdf.setFontSize(10);
+    pdf.text(`MBTI Type: ${mbtiType} | Date: ${dateStr}`, pageWidth / 2, 20, { align: 'center' });
+  };
 
-  let yPos = 30;
+  drawHeader();
+  let yPos = contentTop;
 
-  // 結果カードをキャプチャ
+  // 結果ページ（全内容）をキャプチャして複数ページPDFに分割
   try {
     const canvas = await html2canvas(element, {
       backgroundColor: '#ffffff',
@@ -68,74 +73,54 @@ export async function generateMBTIPDFFromElement(
       logging: false,
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const imgWidth = contentWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgWidthMm = contentWidth;
+    const mmPerPx = imgWidthMm / canvas.width;
 
-    // 画像がページに収まるかチェック
-    const maxImgHeight = pageHeight - yPos - margin - 20;
-    const finalImgHeight = Math.min(imgHeight, maxImgHeight);
-    const finalImgWidth = (finalImgHeight / imgHeight) * imgWidth;
+    const availableHeightMm = pageHeight - yPos - margin;
+    const sliceHeightPx = Math.max(1, Math.floor(availableHeightMm / mmPerPx));
 
-    // 画像を中央に配置
-    const imgX = (pageWidth - finalImgWidth) / 2;
-    pdf.addImage(imgData, 'JPEG', imgX, yPos, finalImgWidth, finalImgHeight);
-    yPos += finalImgHeight + 10;
+    let renderedPx = 0;
+    while (renderedPx < canvas.height) {
+      const remainingPx = canvas.height - renderedPx;
+      const currentSlicePx = Math.min(sliceHeightPx, remainingPx);
+
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = currentSlicePx;
+      const ctx = pageCanvas.getContext('2d');
+      if (!ctx) throw new Error('Failed to get canvas context');
+
+      // 元Canvasの一部分を切り出す
+      ctx.drawImage(
+        canvas,
+        0,
+        renderedPx,
+        canvas.width,
+        currentSlicePx,
+        0,
+        0,
+        canvas.width,
+        currentSlicePx
+      );
+
+      const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+      const sliceHeightMm = currentSlicePx * mmPerPx;
+      pdf.addImage(imgData, 'JPEG', margin, yPos, imgWidthMm, sliceHeightMm);
+
+      renderedPx += currentSlicePx;
+
+      if (renderedPx < canvas.height) {
+        pdf.addPage();
+        drawHeader();
+        yPos = contentTop;
+      }
+    }
 
   } catch (error) {
     console.error('Failed to capture element:', error);
-    // フォールバック: テキストベースの出力
-    pdf.setTextColor(...textColor);
-    pdf.setFontSize(12);
-    pdf.text(`Type: ${mbtiType}`, margin, yPos);
-    yPos += 10;
-    pdf.text(`Title: ${result.title}`, margin, yPos);
-    yPos += 10;
-  }
-
-  // スコア分析セクション（英語で表示）
-  if (yPos < pageHeight - 50) {
-    pdf.setFillColor(...primaryColor);
-    pdf.rect(margin, yPos, 3, 6, 'F');
-    pdf.setTextColor(...textColor);
-    pdf.setFontSize(11);
-    pdf.text('Personality Balance', margin + 6, yPos + 5);
-    yPos += 12;
-
-    // バランスバーを描画
-    const drawBalanceBar = (label1: string, label2: string, balance: number, y: number) => {
-      pdf.setFontSize(8);
-      pdf.setTextColor(...lightGray);
-      pdf.text(label1, margin, y + 2);
-      pdf.text(label2, pageWidth - margin, y + 2, { align: 'right' });
-      
-      const barWidth = contentWidth - 25;
-      const barX = margin + 12;
-      
-      pdf.setFillColor(226, 232, 240);
-      pdf.roundedRect(barX, y, barWidth, 4, 1, 1, 'F');
-      
-      pdf.setFillColor(...primaryColor);
-      pdf.roundedRect(barX, y, barWidth * (balance / 100), 4, 1, 1, 'F');
-      
-      pdf.setTextColor(...textColor);
-      pdf.setFontSize(7);
-      pdf.text(`${balance}%`, barX + barWidth / 2, y + 3, { align: 'center' });
-    };
-
-    const eiBalance = calcBalance(scores.E, scores.I);
-    const snBalance = calcBalance(scores.S, scores.N);
-    const tfBalance = calcBalance(scores.T, scores.F);
-    const jpBalance = calcBalance(scores.J, scores.P);
-
-    drawBalanceBar('E', 'I', eiBalance, yPos);
-    yPos += 8;
-    drawBalanceBar('S', 'N', snBalance, yPos);
-    yPos += 8;
-    drawBalanceBar('T', 'F', tfBalance, yPos);
-    yPos += 8;
-    drawBalanceBar('J', 'P', jpBalance, yPos);
-    yPos += 12;
+    // フォールバック: データベースのPDF生成に切り替え
+    await generateMBTIPDF(options);
+    return;
   }
 
   // フッター

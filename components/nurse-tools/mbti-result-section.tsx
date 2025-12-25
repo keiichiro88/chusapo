@@ -247,6 +247,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
   const [isSavingPDF, setIsSavingPDF] = useState(false);
   const [aiRetryCount, setAiRetryCount] = useState(0);
   const resultCardRef = useRef<HTMLDivElement>(null);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   const typeColor = getTypeColor(result.type);
 
@@ -297,8 +298,9 @@ export const MBTIResultSection = memo(function MBTIResultSection({
     setIsSavingPDF(true);
     setShowShareMenu(false);
     try {
-      if (resultCardRef.current) {
-        await generateMBTIPDFFromElement(resultCardRef.current, {
+      const target = pdfContentRef.current || resultCardRef.current;
+      if (target) {
+        await generateMBTIPDFFromElement(target, {
           mbtiType: result.type,
           result,
           scores: finalScores,
@@ -330,7 +332,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
   return (
     <div className="space-y-8">
       {/* Share Button - Fixed Position */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-50" data-html2canvas-ignore="true">
         <div className="relative">
           {showShareMenu && (
             <div className="absolute bottom-16 right-0 bg-white rounded-xl shadow-xl border border-slate-200 p-2 min-w-[160px] animate-fade-in">
@@ -380,141 +382,144 @@ export const MBTIResultSection = memo(function MBTIResultSection({
         </div>
       </div>
 
-      {/* Main Result Card */}
-      <ResultCard result={result} typeColor={typeColor} resultCardRef={resultCardRef} />
+      {/* PDFに含める範囲 */}
+      <div ref={pdfContentRef} className="space-y-8">
+        {/* Main Result Card */}
+        <ResultCard result={result} typeColor={typeColor} resultCardRef={resultCardRef} />
 
-      {/* スコア詳細（レーダーチャート） */}
-      {finalScores && (
-        <MBTICard className="animate-fade-in-up delay-550">
-          <h3 className="font-bold text-lg text-slate-800 mb-4 text-center">あなたの性格バランス</h3>
-          <Suspense fallback={<div className="h-[280px] bg-slate-100 animate-pulse rounded-xl" />}>
-            <MBTIRadarChart scores={finalScores} />
-          </Suspense>
-        </MBTICard>
-      )}
+        {/* スコア詳細（レーダーチャート） */}
+        {finalScores && (
+          <MBTICard className="animate-fade-in-up delay-550">
+            <h3 className="font-bold text-lg text-slate-800 mb-4 text-center">あなたの性格バランス</h3>
+            <Suspense fallback={<div className="h-[280px] bg-slate-100 animate-pulse rounded-xl" />}>
+              <MBTIRadarChart scores={finalScores} />
+            </Suspense>
+          </MBTICard>
+        )}
 
-      {/* AI Advice Section */}
-      <AIAdviceSection
-        aiAdvice={aiAdvice}
-        isLoadingAi={isLoadingAi}
-        aiError={aiError}
-        aiQuota={aiQuota}
-        aiRetryCount={aiRetryCount}
-        onRetry={handleRetry}
-      />
+        {/* AI Advice Section */}
+        <AIAdviceSection
+          aiAdvice={aiAdvice}
+          isLoadingAi={isLoadingAi}
+          aiError={aiError}
+          aiQuota={aiQuota}
+          aiRetryCount={aiRetryCount}
+          onRetry={handleRetry}
+        />
 
-      {/* Recommendations Section */}
-      <div className="space-y-6 pt-6 animate-fade-in-up delay-700">
-        <div className="text-center">
-          <h3 className="text-xl font-bold text-slate-800 mb-1">あなたにおすすめの転職サイト</h3>
-          <p className="text-sm text-slate-500">あなたの性格タイプとの相性が高いサービスです</p>
-        </div>
+        {/* Recommendations Section */}
+        <div className="space-y-6 pt-6 animate-fade-in-up delay-700">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-slate-800 mb-1">あなたにおすすめの転職サイト</h3>
+            <p className="text-sm text-slate-500">あなたの性格タイプとの相性が高いサービスです</p>
+          </div>
 
-        <div className="grid gap-4">
-          {RECRUITMENT_SITES
-            .filter(site => site.recommendedFor.includes(result.type))
-            .slice(0, 2)
-            .map((site, index) => (
-              <a
-                key={index}
-                href={site.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`block group animate-fade-in-up`}
-                style={{ animationDelay: `${800 + index * 100}ms` }}
-                onClick={() => onTrackSiteClick(site.name, result.type)}
-              >
-                <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 relative card-hover-lift">
-                  <div className={`absolute top-0 right-0 bg-gradient-to-r ${typeColor.primary} text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10`}>
-                    相性抜群
-                  </div>
-
-                  <div className="flex flex-col md:flex-row">
-                    <div className={`${site.color} p-4 md:w-32 flex items-center justify-center text-white font-bold text-lg md:text-xl shrink-0`}>
-                      {site.name}
+          <div className="grid gap-4">
+            {RECRUITMENT_SITES
+              .filter(site => site.recommendedFor.includes(result.type))
+              .slice(0, 2)
+              .map((site, index) => (
+                <a
+                  key={index}
+                  href={site.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block group animate-fade-in-up`}
+                  style={{ animationDelay: `${800 + index * 100}ms` }}
+                  onClick={() => onTrackSiteClick(site.name, result.type)}
+                >
+                  <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 relative card-hover-lift">
+                    <div className={`absolute top-0 right-0 bg-gradient-to-r ${typeColor.primary} text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10`}>
+                      相性抜群
                     </div>
-                    <div className="p-4 flex-1">
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {site.tags.map(tag => (
-                          <span key={tag} className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                            {tag}
-                          </span>
-                        ))}
+
+                    <div className="flex flex-col md:flex-row">
+                      <div className={`${site.color} p-4 md:w-32 flex items-center justify-center text-white font-bold text-lg md:text-xl shrink-0`}>
+                        {site.name}
                       </div>
-                      <p className="text-sm text-slate-600 mb-3">{site.description}</p>
-                      <div className="flex items-center text-teal-600 text-sm font-bold group-hover:underline">
-                        サイトを見る <ExternalLink className="w-4 h-4 ml-1" />
+                      <div className="p-4 flex-1">
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {site.tags.map(tag => (
+                            <span key={tag} className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-sm text-slate-600 mb-3">{site.description}</p>
+                        <div className="flex items-center text-teal-600 text-sm font-bold group-hover:underline">
+                          サイトを見る <ExternalLink className="w-4 h-4 ml-1" />
+                        </div>
                       </div>
                     </div>
                   </div>
+                </a>
+              ))}
+
+            {/* AIパーソナライズ推薦 */}
+            {aiAdvice?.personalizedSiteRecommendations && aiAdvice.personalizedSiteRecommendations.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  <span className="text-sm font-bold text-slate-600">AIによるパーソナライズ推薦</span>
                 </div>
-              </a>
-            ))}
-
-          {/* AIパーソナライズ推薦 */}
-          {aiAdvice?.personalizedSiteRecommendations && aiAdvice.personalizedSiteRecommendations.length > 0 && (
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="text-sm font-bold text-slate-600">AIによるパーソナライズ推薦</span>
-              </div>
-              {aiAdvice.personalizedSiteRecommendations.map((rec, idx) => {
-                const site = RECRUITMENT_SITES.find(s => s.name === rec.siteName);
-                if (!site) return null;
-                return (
-                  <div key={idx} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-800">{rec.siteName}</span>
-                      <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">
-                        相性スコア: {rec.matchScore}%
-                      </span>
+                {aiAdvice.personalizedSiteRecommendations.map((rec, idx) => {
+                  const site = RECRUITMENT_SITES.find(s => s.name === rec.siteName);
+                  if (!site) return null;
+                  return (
+                    <div key={idx} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-slate-800">{rec.siteName}</span>
+                        <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">
+                          相性スコア: {rec.matchScore}%
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600">{rec.reason}</p>
+                      <a
+                        href={site.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-teal-600 font-medium mt-2 hover:underline"
+                        onClick={() => onTrackSiteClick(site.name, result.type)}
+                      >
+                        詳しく見る <ExternalLink className="w-3 h-3" />
+                      </a>
                     </div>
-                    <p className="text-sm text-slate-600">{rec.reason}</p>
-                    <a
-                      href={site.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-teal-600 font-medium mt-2 hover:underline"
-                      onClick={() => onTrackSiteClick(site.name, result.type)}
-                    >
-                      詳しく見る <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
 
-          <div className="text-center mt-4">
-            <p className="text-xs text-slate-400 mb-2">※相性は傾向に基づくご提案です。</p>
+            <div className="text-center mt-4">
+              <p className="text-xs text-slate-400 mb-2">※相性は傾向に基づくご提案です。</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* キャリアパス可視化 */}
-      <div className="animate-fade-in-up delay-750">
-        <Suspense fallback={<div className="h-[400px] bg-slate-100 animate-pulse rounded-xl" />}>
-          <MBTICareerPath mbtiType={result.type} />
-        </Suspense>
-      </div>
+        {/* キャリアパス可視化 */}
+        <div className="animate-fade-in-up delay-750">
+          <Suspense fallback={<div className="h-[400px] bg-slate-100 animate-pulse rounded-xl" />}>
+            <MBTICareerPath mbtiType={result.type} />
+          </Suspense>
+        </div>
 
-      {/* 16タイプマップ */}
-      <div className="animate-fade-in-up delay-775">
-        <Suspense fallback={<div className="h-[350px] bg-slate-100 animate-pulse rounded-xl" />}>
-          <MBTITypeMap currentType={result.type} />
-        </Suspense>
-      </div>
+        {/* 16タイプマップ */}
+        <div className="animate-fade-in-up delay-775">
+          <Suspense fallback={<div className="h-[350px] bg-slate-100 animate-pulse rounded-xl" />}>
+            <MBTITypeMap currentType={result.type} />
+          </Suspense>
+        </div>
 
-      {/* 友達との相性診断 */}
-      <div className="animate-fade-in-up delay-800">
-        <Suspense fallback={<div className="h-[200px] bg-slate-100 animate-pulse rounded-xl" />}>
-          <MBTIFriendComparison myType={result.type} />
-        </Suspense>
+        {/* 友達との相性診断 */}
+        <div className="animate-fade-in-up delay-800">
+          <Suspense fallback={<div className="h-[200px] bg-slate-100 animate-pulse rounded-xl" />}>
+            <MBTIFriendComparison myType={result.type} />
+          </Suspense>
+        </div>
       </div>
 
       {/* 診断履歴 */}
       {diagnosisHistory.length > 0 && (
-        <div className="animate-fade-in-up delay-850">
+        <div className="animate-fade-in-up delay-850" data-html2canvas-ignore="true">
           <Suspense fallback={<div className="h-[200px] bg-slate-100 animate-pulse rounded-xl" />}>
             <MBTIHistory
               history={diagnosisHistory}
@@ -527,7 +532,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
         </div>
       )}
 
-      <div className="flex justify-center pt-8 pb-12 animate-fade-in-up delay-900">
+      <div className="flex justify-center pt-8 pb-12 animate-fade-in-up delay-900" data-html2canvas-ignore="true">
         <MBTIButton onClick={onReset} variant="outline" className="w-full max-w-xs">
           <RotateCcw className="w-4 h-4" /> もう一度診断する
         </MBTIButton>
