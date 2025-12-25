@@ -64,38 +64,33 @@
   }
 }
 
-/* ハートがぷくっと膨らんで飛び出して戻ってくるアニメーション */
+/* ハートがふわっと弾む（なめらか＆可愛い） */
 @keyframes heartPulse {
   0% {
-    transform: scale(1) translateY(0);
+    transform: scale(1) rotate(0deg) translateY(0);
     filter: none;
   }
-  8% {
-    transform: scale(1.3) translateY(0);
-    filter: hue-rotate(25deg) saturate(1.4);
+  12% {
+    transform: scale(1.08) rotate(-6deg) translateY(0);
   }
-  20% {
-    transform: scale(2.5) translateY(-20px);
-    filter: hue-rotate(50deg) saturate(1.8) brightness(1.3);
+  25% {
+    transform: scale(1.22) rotate(6deg) translateY(-1px);
   }
-  30% {
-    transform: scale(2.5) translateY(-30px);
-    filter: hue-rotate(50deg) saturate(1.8) brightness(1.3);
+  40% {
+    transform: scale(1.42) rotate(-3deg) translateY(-3px);
+    filter: drop-shadow(0 6px 10px rgba(239, 68, 68, 0.25));
   }
-  50% {
-    transform: scale(1.5) translateY(-20px);
-    filter: hue-rotate(35deg) saturate(1.5) brightness(1.2);
+  55% {
+    transform: scale(1.22) rotate(2deg) translateY(-1px);
   }
-  70% {
-    transform: scale(1.1) translateY(-5px);
-    filter: hue-rotate(15deg) saturate(1.2);
+  72% {
+    transform: scale(1.10) rotate(0deg) translateY(0);
   }
-  80% {
-    transform: scale(1.0) translateY(0);
-    filter: none;
+  86% {
+    transform: scale(1.03) rotate(0deg) translateY(0);
   }
   100% {
-    transform: scale(1.0) translateY(0);
+    transform: scale(1) rotate(0deg) translateY(0);
     filter: none;
   }
 }

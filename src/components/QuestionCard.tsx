@@ -68,10 +68,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       // ハートアニメーションを開始
       setIsHeartAnimating(true);
       
-      // 0.67秒後にアニメーションを停止（0.8 ÷ 1.2 = 約0.67）
+      // アニメーション終了後に停止（CSS側の duration と合わせる）
       setTimeout(() => {
         setIsHeartAnimating(false);
-      }, 670);
+      }, 800);
     }
     
     // 元のonLike関数を実行
@@ -350,7 +350,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     : 'text-gray-600 group-hover:text-red-500'
                 } ${isHeartAnimating ? 'text-red-500 fill-red-500' : ''}`}
                 style={{
-                  animation: isHeartAnimating ? 'heartPulse 0.67s ease-in-out' : 'none',
+                  animation: isHeartAnimating ? 'heartPulse 0.8s ease-out' : 'none',
                   animationFillMode: 'forwards'
                 }}
               />
