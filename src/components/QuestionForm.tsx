@@ -57,30 +57,52 @@ type TemplateData = {
   photoNote: string;
 };
 
+function buildHashtagTokens(params: { category: string } & TemplateData): string[] {
+  const tokens: string[] = [];
+
+  if (params.category) tokens.push(params.category);
+
+  if (params.punctureSite && params.punctureSite !== 'その他/不明') tokens.push(params.punctureSite);
+
+  // 条件（「その他」はノイズなので除外）
+  for (const v of params.vesselConditions || []) {
+    if (!v) continue;
+    if (v === 'その他') continue;
+    tokens.push(v);
+  }
+
+  // 器具/ゲージ（「不明/その他」は除外）
+  if (params.deviceType && params.deviceType !== 'その他/不明') tokens.push(params.deviceType);
+  if (params.gauge && params.gauge !== '不明') tokens.push(params.gauge);
+
+  // 困りごと（「その他」は除外）
+  for (const v of params.issues || []) {
+    if (!v) continue;
+    if (v === 'その他') continue;
+    tokens.push(v);
+  }
+
+  // 参考画像（有無のみをハッシュタグ化）
+  if (params.hasPhoto === 'あり') tokens.push('参考画像あり');
+
+  // 重複除去（順序は保持）
+  const seen = new Set<string>();
+  return tokens.filter((t) => {
+    if (seen.has(t)) return false;
+    seen.add(t);
+    return true;
+  });
+}
+
 function buildStructuredContent(params: { category: string; title: string; content: string } & TemplateData) {
-  const templateFilled =
-    !!params.punctureSite ||
-    params.vesselConditions.length > 0 ||
-    !!params.deviceType ||
-    !!params.gauge ||
-    params.issues.length > 0 ||
-    !!params.hasPhoto ||
-    !!params.photoNote.trim();
+  const body = params.content.trim();
+  const tokens = buildHashtagTokens(params);
 
-  if (!templateFilled) return params.content;
+  // 何も選択が無いなら本文だけ
+  if (tokens.length === 0) return body;
 
-  const lines: string[] = [];
-  lines.push('【状況テンプレ】');
-  if (params.category) lines.push(`【カテゴリ】${params.category}`);
-  if (params.punctureSite) lines.push(`【穿刺部位】${params.punctureSite}`);
-  if (params.vesselConditions.length > 0) lines.push(`【血管/条件】${params.vesselConditions.join(' / ')}`);
-  if (params.deviceType || params.gauge) lines.push(`【針・カテ】${[params.deviceType, params.gauge].filter(Boolean).join(' ')}`);
-  if (params.issues.length > 0) lines.push(`【困りごと】${params.issues.join(' / ')}`);
-  if (params.hasPhoto) lines.push(`【参考画像】${params.hasPhoto}${params.photoNote.trim() ? `（${params.photoNote.trim()}）` : ''}`);
-  lines.push('');
-  lines.push('【詳細】');
-  lines.push(params.content.trim());
-  return lines.join('\n');
+  // 本文 → 改行 → ハッシュタグ（【詳細】などの見出しは付けない）
+  return [body, '', ...tokens.map((t) => `＃${t}`)].join('\n');
 }
 
 const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, currentUser }) => {
@@ -313,13 +335,16 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ isOpen, onClose, onSubmit, 
     }
     
     // カテゴリーをタグとして設定
-    const finalTags = [];
-    if (formData.category) finalTags.push(formData.category);
-    
-    // テンプレ情報をタグに軽く付与（LocalStorage用）
-    if (formData.punctureSite) finalTags.push(`穿刺部位:${formData.punctureSite}`);
-    if (formData.deviceType) finalTags.push(`器具:${formData.deviceType}`);
-    if (formData.gauge) finalTags.push(`ゲージ:${formData.gauge}`);
+    const finalTags = buildHashtagTokens({
+      category: formData.category,
+      punctureSite: formData.punctureSite,
+      vesselConditions: formData.vesselConditions,
+      deviceType: formData.deviceType,
+      gauge: formData.gauge,
+      issues: formData.issues,
+      hasPhoto: formData.hasPhoto,
+      photoNote: formData.photoNote,
+    });
 
     const finalContent = buildStructuredContent({
       category: formData.category,

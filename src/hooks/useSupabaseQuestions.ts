@@ -95,6 +95,19 @@ export const useSupabaseQuestions = () => {
    * Supabaseの質問データを表示用に変換
    */
   const convertToDisplayQuestion = useCallback((q: SupabaseQuestion): DisplayQuestion => {
+    const extractHashtags = (content: string): string[] => {
+      if (!content) return [];
+      return content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.startsWith('#') || line.startsWith('＃'))
+        .map((line) => line.replace(/^[#＃]+/, '').trim())
+        .filter(Boolean)
+        .slice(0, 20); // 念のため上限
+    };
+
+    const tags = Array.from(new Set([q.category, ...extractHashtags(q.content)])).filter(Boolean);
+
     return {
       id: q.id,
       title: q.title,
@@ -105,7 +118,7 @@ export const useSupabaseQuestions = () => {
       timeAgo: getTimeAgo(q.created_at),
       likes: q.likes_count,
       answers: q.answers_count,
-      tags: [q.category], // カテゴリーをタグとして使用
+      tags, // 本文のハッシュタグも表示用タグに反映
       hasAcceptedAnswer: q.has_accepted_answer,
       createdAt: new Date(q.created_at)
     };

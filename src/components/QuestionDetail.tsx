@@ -499,7 +499,7 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                   className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer transition-all duration-200"
                 >
                   <Tag className="h-3 w-3 mr-1.5" />
-                  {tag}
+                  ＃{tag}
                 </span>
               ))}
             </div>
