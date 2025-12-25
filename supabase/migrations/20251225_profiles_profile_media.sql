@@ -22,3 +22,4 @@ ALTER TABLE public.profiles
 --   先頭フォルダを user_id にする必要があります。
 
 
+

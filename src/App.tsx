@@ -27,6 +27,7 @@ import Guidelines from './components/Guidelines';
 import QuizApp from './components/quiz/QuizApp';
 import UserSelector from './components/UserSelector';
 import UserProfile from './components/profile/UserProfile';
+import { MBTICareerDiagnosisPage } from '../components/nurse-tools/mbti-career-diagnosis-page';
 import EditProfileModal from './components/profile/EditProfileModal';
 import AuthTest from './components/auth/AuthTest';
 import EmptyState from './components/EmptyState';
@@ -49,7 +50,14 @@ function App() {
     category: ''
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get('section');
+    if (section === 'nurse-career-diagnosis' || section === 'mbti' || section === 'self-analysis') {
+      return 'nurse-career-diagnosis';
+    }
+    return 'home';
+  });
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -280,6 +288,20 @@ function App() {
       return;
     }
 
+    // シェアURL用の section パラメータを同期（キャリア診断AIのみ）
+    try {
+      const url = new URL(window.location.href);
+      if (section === 'nurse-career-diagnosis') {
+        url.searchParams.set('section', 'nurse-career-diagnosis');
+      } else if (url.searchParams.get('section') === 'nurse-career-diagnosis') {
+        url.searchParams.delete('section');
+        url.searchParams.delete('type');
+      }
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // no-op
+    }
+
     // ホーム画面以外からホーム画面に戻る場合はスクロール位置を保持
     if (section === 'home' && activeSection !== 'home') {
       // 現在のスクロール位置を保存（他の画面からホームに戻る場合）
@@ -377,6 +399,8 @@ function App() {
             <QuizApp
               onBack={() => setActiveSection('home')}
             />
+          ) : activeSection === 'nurse-career-diagnosis' ? (
+            <MBTICareerDiagnosisPage />
           ) : activeSection === 'about-chusapo' ? (
             <AboutChusapo
               onBack={() => setActiveSection('home')}

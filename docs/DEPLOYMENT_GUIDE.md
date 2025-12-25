@@ -48,6 +48,7 @@ Vercel の Project Settings → Environment Variables で以下を設定：
 |--------|------|------|
 | `VITE_SUPABASE_URL` | Supabase プロジェクト URL | ✅ |
 | `VITE_SUPABASE_ANON_KEY` | Supabase Anon Key | ✅ |
+| `GEMINI_API_KEY` | ナースキャリア診断AI（Gemini）用APIキー（サーバー側のみで使用） | ✅（AI機能を使う場合） |
 | `VITE_SENTRY_DSN` | Sentry DSN | 推奨 |
 | `VITE_GA_MEASUREMENT_ID` | Google Analytics ID | 推奨 |
 
@@ -56,9 +57,17 @@ Vercel の Project Settings → Environment Variables で以下を設定：
 ```
 VITE_SUPABASE_URL=https://xxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 VITE_SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
+
+### 2.1 ナースキャリア診断AI（Gemini）の利用制限（ログイン必須 + 1日3回）
+
+AIキャリアアドバイスは **ログイン必須 + 1日3回まで** に制限しています。Supabaseに以下のDB変更が必要です。
+
+- **対象**: `supabase/migrations/20251225_mbti_ai_daily_limit.sql`
+- **やること**: ファイル内容を Supabase SQL Editor に貼り付けて実行
 
 ---
 

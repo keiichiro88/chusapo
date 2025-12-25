@@ -526,6 +526,87 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created
 CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
 
 -- ============================================
+-- 8. MBTI AIキャリアアドバイス：ログイン必須 + 1日3回まで
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.mbti_ai_usage (
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  usage_date DATE NOT NULL DEFAULT (timezone('Asia/Tokyo', now())::date),
+  count INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, usage_date)
+);
+
+ALTER TABLE public.mbti_ai_usage ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own mbti_ai_usage"
+  ON public.mbti_ai_usage FOR SELECT
+  TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY "Users can insert own mbti_ai_usage"
+  ON public.mbti_ai_usage FOR INSERT
+  TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users can update own mbti_ai_usage"
+  ON public.mbti_ai_usage FOR UPDATE
+  TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE OR REPLACE FUNCTION public.consume_mbti_ai_quota(p_user_id UUID)
+RETURNS TABLE(allowed BOOLEAN, remaining INTEGER, used INTEGER, daily_limit INTEGER)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_date DATE := (timezone('Asia/Tokyo', now())::date);
+  v_count INTEGER;
+  v_limit INTEGER := 3;
+BEGIN
+  IF p_user_id IS NULL OR p_user_id <> auth.uid() THEN
+    RAISE EXCEPTION 'not allowed';
+  END IF;
+
+  INSERT INTO public.mbti_ai_usage (user_id, usage_date, count)
+  VALUES (p_user_id, v_date, 0)
+  ON CONFLICT (user_id, usage_date) DO NOTHING;
+
+  SELECT count
+    INTO v_count
+    FROM public.mbti_ai_usage
+   WHERE user_id = p_user_id
+     AND usage_date = v_date
+   FOR UPDATE;
+
+  IF v_count >= v_limit THEN
+    allowed := FALSE;
+    used := v_count;
+    remaining := 0;
+    daily_limit := v_limit;
+    RETURN NEXT;
+    RETURN;
+  END IF;
+
+  UPDATE public.mbti_ai_usage
+     SET count = v_count + 1,
+         updated_at = now()
+   WHERE user_id = p_user_id
+     AND usage_date = v_date;
+
+  allowed := TRUE;
+  used := v_count + 1;
+  remaining := v_limit - used;
+  daily_limit := v_limit;
+  RETURN NEXT;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.consume_mbti_ai_quota(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.consume_mbti_ai_quota(UUID) TO authenticated;
+
+-- ============================================
 -- 8.1 列権限（改ざん防止）
 -- ============================================
 -- RLS は行単位の制御なので、システム管理カラムは列権限で書き込みを制限する
