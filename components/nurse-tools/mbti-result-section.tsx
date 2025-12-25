@@ -57,6 +57,7 @@ interface MBTIResultSectionProps {
   aiAdvice: AIAdvice | null;
   isLoadingAi: boolean;
   aiError: boolean;
+  aiQuota?: { remaining: number | null; dailyLimit: number; isLoggedIn: boolean };
   finalScores: MBTIScores | null;
   diagnosisHistory: DiagnosisHistoryItem[];
   onRetryAIAdvice: () => void;
@@ -137,20 +138,44 @@ const AIAdviceSection = memo(function AIAdviceSection({
   aiAdvice,
   isLoadingAi,
   aiError,
+  aiQuota,
   aiRetryCount,
   onRetry,
 }: {
   aiAdvice: AIAdvice | null;
   isLoadingAi: boolean;
   aiError: boolean;
+  aiQuota?: { remaining: number | null; dailyLimit: number; isLoggedIn: boolean };
   aiRetryCount: number;
   onRetry: () => void;
 }) {
+  const quotaBadge = (() => {
+    if (!aiQuota) return null;
+    const limit = aiQuota.dailyLimit ?? 3;
+    if (!aiQuota.isLoggedIn) {
+      return { text: `ログインで利用可（1日${limit}回）`, className: 'bg-gray-100 text-gray-700' };
+    }
+    if (aiQuota.remaining === null || aiQuota.remaining === undefined) {
+      return { text: `1日${limit}回まで`, className: 'bg-gray-100 text-gray-700' };
+    }
+    const r = aiQuota.remaining;
+    const className =
+      r <= 0 ? 'bg-red-100 text-red-700' : r === 1 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700';
+    return { text: `本日あと${r}回`, className };
+  })();
+
   return (
     <div className="space-y-4 animate-fade-in-up delay-600">
-      <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-purple-500 animate-pulse" />
-        <h3 className="font-bold text-lg text-slate-800">AIキャリアアドバイス</h3>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-purple-500 animate-pulse" />
+          <h3 className="font-bold text-lg text-slate-800">AIキャリアアドバイス</h3>
+        </div>
+        {quotaBadge && (
+          <span className={`px-3 py-1 rounded-full text-xs font-black ${quotaBadge.className}`}>
+            {quotaBadge.text}
+          </span>
+        )}
       </div>
 
       {isLoadingAi ? (
@@ -207,6 +232,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
   aiAdvice,
   isLoadingAi,
   aiError,
+  aiQuota,
   finalScores,
   diagnosisHistory,
   onRetryAIAdvice,
@@ -372,6 +398,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
         aiAdvice={aiAdvice}
         isLoadingAi={isLoadingAi}
         aiError={aiError}
+        aiQuota={aiQuota}
         aiRetryCount={aiRetryCount}
         onRetry={handleRetry}
       />

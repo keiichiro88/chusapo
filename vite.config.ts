@@ -6,6 +6,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import mbtiAdviceHandler from './api/nurse-tools/mbti-advice';
 import mbtiStatsHandler from './api/nurse-tools/mbti-stats';
 import trackClickHandler from './api/nurse-tools/track-click';
+import mbtiQuotaHandler from './api/nurse-tools/mbti-quota';
 
 type RequestLike = {
   method?: string;
@@ -73,6 +74,7 @@ function nurseToolsApiPlugin(): Plugin {
       };
 
       mount('/api/nurse-tools/mbti-advice', mbtiAdviceHandler);
+      mount('/api/nurse-tools/mbti-quota', mbtiQuotaHandler);
       mount('/api/nurse-tools/mbti-stats', mbtiStatsHandler);
       mount('/api/nurse-tools/track-click', trackClickHandler);
     },

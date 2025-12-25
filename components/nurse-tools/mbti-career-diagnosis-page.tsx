@@ -53,6 +53,7 @@ export function MBTICareerDiagnosisPage() {
   const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [aiError, setAiError] = useState(false);
+  const [aiQuota, setAiQuota] = useState<{ remaining: number | null; dailyLimit: number } | null>(null);
   const [finalScores, setFinalScores] = useState<MBTIScores | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasSavedResult, setHasSavedResult] = useState(false);
@@ -93,6 +94,43 @@ export function MBTICareerDiagnosisPage() {
     localStorage.setItem(SESSION_KEY, newSessionId);
     setSessionId(newSessionId);
   }, []);
+
+  // AI残回数の取得（消費しない）
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) {
+      setAiQuota(null);
+      return;
+    }
+
+    let isCancelled = false;
+    fetch('/api/nurse-tools/mbti-quota', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const data = (await res.json().catch(() => null)) as
+          | { remaining?: number; dailyLimit?: number }
+          | null;
+        if (!data) return null;
+        const remaining =
+          typeof data.remaining === 'number' && Number.isFinite(data.remaining) ? data.remaining : null;
+        const dailyLimit =
+          typeof data.dailyLimit === 'number' && Number.isFinite(data.dailyLimit) ? data.dailyLimit : 3;
+        return { remaining, dailyLimit };
+      })
+      .then((quota) => {
+        if (isCancelled) return;
+        if (quota) setAiQuota(quota);
+      })
+      .catch(() => {
+        // no-op（UIは「1日3回まで」表示でフォールバック）
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [accessToken, isAuthenticated]);
 
   const latestHistoryItem = useMemo(() => diagnosisHistory[0] || null, [diagnosisHistory]);
 
@@ -186,6 +224,15 @@ export function MBTICareerDiagnosisPage() {
           body: JSON.stringify({ mbtiType, personalityData, sessionId: currentSession }),
         });
 
+        // 残回数をヘッダから反映（あれば）
+        const remainingHeader = response.headers.get('X-RateLimit-Remaining');
+        if (remainingHeader) {
+          const n = Number(remainingHeader);
+          if (Number.isFinite(n)) {
+            setAiQuota((prev) => ({ remaining: n, dailyLimit: prev?.dailyLimit ?? 3 }));
+          }
+        }
+
         if (response.status === 401) {
           return {
             careerAdvice: 'AIキャリアアドバイスはログイン後に利用できます（1日3回まで）。',
@@ -197,6 +244,7 @@ export function MBTICareerDiagnosisPage() {
         if (response.status === 429) {
           const data = await response.json();
           const msg = (data as { message?: string })?.message || '本日のAIアドバイス取得回数の上限に達しました';
+          setAiQuota((prev) => ({ remaining: 0, dailyLimit: prev?.dailyLimit ?? 3 }));
           return {
             careerAdvice: msg,
             stressManagement: msg,
@@ -532,6 +580,7 @@ export function MBTICareerDiagnosisPage() {
             aiAdvice={aiAdvice}
             isLoadingAi={isLoadingAi}
             aiError={aiError}
+            aiQuota={aiQuota ? { ...aiQuota, isLoggedIn: isAuthenticated } : { remaining: null, dailyLimit: 3, isLoggedIn: isAuthenticated }}
             finalScores={finalScores}
             diagnosisHistory={diagnosisHistory}
             onRetryAIAdvice={retryAIAdvice}
