@@ -20,9 +20,15 @@ CREATE TABLE IF NOT EXISTS profiles (
   speciality TEXT,  -- 専門分野
   experience TEXT,  -- 経験年数
   workplace TEXT,  -- 勤務先
+  location TEXT DEFAULT '',  -- 所在地（都道府県など）
+  website TEXT DEFAULT '',  -- Webサイト（任意）
+  social_links JSONB DEFAULT '{}'::jsonb,  -- SNSリンク等（任意）
   total_gratitude INTEGER DEFAULT 0,  -- 累計感謝数
   current_title TEXT DEFAULT '',  -- 現在の称号
   avatar_url TEXT,
+  background_url TEXT,
+  avatar_gradient TEXT DEFAULT 'from-purple-500 to-pink-500',
+  background_gradient TEXT DEFAULT 'from-blue-400 via-blue-500 to-blue-600',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

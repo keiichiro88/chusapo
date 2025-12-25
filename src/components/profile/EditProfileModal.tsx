@@ -40,6 +40,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [showAvatarOptions, setShowAvatarOptions] = useState(false);
@@ -108,10 +109,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setSaveError(null);
 
     try {
       // プロフィール設定を保存
-      updateSettings({
+      await updateSettings({
         ...formData,
         socialLinks,
         avatarImage,
@@ -129,6 +131,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
       onClose();
     } catch (error) {
       console.error('プロフィール更新に失敗しました:', error);
+      setSaveError('保存に失敗しました。通信状況を確認してもう一度お試しください。');
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +196,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+          {saveError && (
+            <div className="p-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-medium">
+              {saveError}
+            </div>
+          )}
           {/* 背景画像とアバター */}
           <div className="space-y-6">
             {/* 背景画像 */}
@@ -420,13 +428,65 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
               <label className="block text-sm font-bold text-gray-700 mb-1.5">
                 専門分野
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.speciality}
                 onChange={(e) => setFormData({ ...formData, speciality: e.target.value })}
                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium text-sm"
-                placeholder="例: 循環器内科、救急科"
-              />
+              >
+                <option value="">選択してください</option>
+                <optgroup label="内科系">
+                  <option value="内科">内科</option>
+                  <option value="循環器内科">循環器内科</option>
+                  <option value="消化器内科">消化器内科</option>
+                  <option value="呼吸器内科">呼吸器内科</option>
+                  <option value="腎臓内科">腎臓内科</option>
+                  <option value="糖尿病・内分泌内科">糖尿病・内分泌内科</option>
+                  <option value="血液内科">血液内科</option>
+                  <option value="神経内科">神経内科</option>
+                  <option value="膠原病・リウマチ内科">膠原病・リウマチ内科</option>
+                  <option value="感染症内科">感染症内科</option>
+                  <option value="腫瘍内科">腫瘍内科</option>
+                  <option value="老年内科">老年内科</option>
+                  <option value="心療内科">心療内科</option>
+                  <option value="総合診療科">総合診療科</option>
+                </optgroup>
+                <optgroup label="外科系">
+                  <option value="外科">外科</option>
+                  <option value="消化器外科">消化器外科</option>
+                  <option value="心臓血管外科">心臓血管外科</option>
+                  <option value="呼吸器外科">呼吸器外科</option>
+                  <option value="脳神経外科">脳神経外科</option>
+                  <option value="整形外科">整形外科</option>
+                  <option value="形成外科">形成外科</option>
+                  <option value="乳腺外科">乳腺外科</option>
+                  <option value="泌尿器科">泌尿器科</option>
+                  <option value="小児外科">小児外科</option>
+                </optgroup>
+                <optgroup label="専門科">
+                  <option value="小児科">小児科</option>
+                  <option value="産婦人科">産婦人科</option>
+                  <option value="眼科">眼科</option>
+                  <option value="耳鼻咽喉科">耳鼻咽喉科</option>
+                  <option value="皮膚科">皮膚科</option>
+                  <option value="精神科">精神科</option>
+                  <option value="放射線科">放射線科</option>
+                  <option value="麻酔科">麻酔科</option>
+                  <option value="病理診断科">病理診断科</option>
+                  <option value="臨床検査科">臨床検査科</option>
+                </optgroup>
+                <optgroup label="救急・集中治療">
+                  <option value="救急科">救急科</option>
+                  <option value="集中治療科">集中治療科</option>
+                </optgroup>
+                <optgroup label="その他">
+                  <option value="リハビリテーション科">リハビリテーション科</option>
+                  <option value="緩和ケア科">緩和ケア科</option>
+                  <option value="在宅医療">在宅医療</option>
+                  <option value="歯科">歯科</option>
+                  <option value="口腔外科">口腔外科</option>
+                  <option value="その他">その他</option>
+                </optgroup>
+              </select>
             </div>
 
             <div>
@@ -438,12 +498,27 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
                 onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium text-sm"
               >
+                <option value="">選択してください</option>
                 <option value="1年未満">1年未満</option>
-                <option value="1-3年目">1-3年目</option>
-                <option value="4-6年目">4-6年目</option>
-                <option value="7-10年目">7-10年目</option>
+                <option value="1年目">1年目</option>
+                <option value="2年目">2年目</option>
+                <option value="3年目">3年目</option>
+                <option value="4年目">4年目</option>
+                <option value="5年目">5年目</option>
+                <option value="6年目">6年目</option>
+                <option value="7年目">7年目</option>
+                <option value="8年目">8年目</option>
+                <option value="9年目">9年目</option>
                 <option value="10年目">10年目</option>
-                <option value="15年以上">15年以上</option>
+                <option value="11年目">11年目</option>
+                <option value="12年目">12年目</option>
+                <option value="13年目">13年目</option>
+                <option value="14年目">14年目</option>
+                <option value="15年目">15年目</option>
+                <option value="16-20年目">16-20年目</option>
+                <option value="21-25年目">21-25年目</option>
+                <option value="26-30年目">26-30年目</option>
+                <option value="30年以上">30年以上</option>
               </select>
             </div>
           </div>
@@ -479,13 +554,80 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 font-medium text-sm"
                 >
-                  <option value="北海道">北海道</option>
-                  <option value="東京都">東京都</option>
-                  <option value="神奈川県">神奈川県</option>
-                  <option value="大阪府">大阪府</option>
-                  <option value="愛知県">愛知県</option>
-                  <option value="福岡県">福岡県</option>
-                  <option value="その他">その他</option>
+                  <option value="">選択してください</option>
+                  <optgroup label="地域（大まか）">
+                    <option value="北海道・東北地方">北海道・東北地方</option>
+                    <option value="関東地方">関東地方</option>
+                    <option value="中部地方">中部地方</option>
+                    <option value="近畿地方">近畿地方</option>
+                    <option value="中国地方">中国地方</option>
+                    <option value="四国地方">四国地方</option>
+                    <option value="九州・沖縄地方">九州・沖縄地方</option>
+                  </optgroup>
+                  <optgroup label="北海道・東北">
+                    <option value="北海道">北海道</option>
+                    <option value="青森県">青森県</option>
+                    <option value="岩手県">岩手県</option>
+                    <option value="宮城県">宮城県</option>
+                    <option value="秋田県">秋田県</option>
+                    <option value="山形県">山形県</option>
+                    <option value="福島県">福島県</option>
+                  </optgroup>
+                  <optgroup label="関東">
+                    <option value="茨城県">茨城県</option>
+                    <option value="栃木県">栃木県</option>
+                    <option value="群馬県">群馬県</option>
+                    <option value="埼玉県">埼玉県</option>
+                    <option value="千葉県">千葉県</option>
+                    <option value="東京都">東京都</option>
+                    <option value="神奈川県">神奈川県</option>
+                  </optgroup>
+                  <optgroup label="中部">
+                    <option value="新潟県">新潟県</option>
+                    <option value="富山県">富山県</option>
+                    <option value="石川県">石川県</option>
+                    <option value="福井県">福井県</option>
+                    <option value="山梨県">山梨県</option>
+                    <option value="長野県">長野県</option>
+                    <option value="岐阜県">岐阜県</option>
+                    <option value="静岡県">静岡県</option>
+                    <option value="愛知県">愛知県</option>
+                  </optgroup>
+                  <optgroup label="近畿">
+                    <option value="三重県">三重県</option>
+                    <option value="滋賀県">滋賀県</option>
+                    <option value="京都府">京都府</option>
+                    <option value="大阪府">大阪府</option>
+                    <option value="兵庫県">兵庫県</option>
+                    <option value="奈良県">奈良県</option>
+                    <option value="和歌山県">和歌山県</option>
+                  </optgroup>
+                  <optgroup label="中国">
+                    <option value="鳥取県">鳥取県</option>
+                    <option value="島根県">島根県</option>
+                    <option value="岡山県">岡山県</option>
+                    <option value="広島県">広島県</option>
+                    <option value="山口県">山口県</option>
+                  </optgroup>
+                  <optgroup label="四国">
+                    <option value="徳島県">徳島県</option>
+                    <option value="香川県">香川県</option>
+                    <option value="愛媛県">愛媛県</option>
+                    <option value="高知県">高知県</option>
+                  </optgroup>
+                  <optgroup label="九州・沖縄">
+                    <option value="福岡県">福岡県</option>
+                    <option value="佐賀県">佐賀県</option>
+                    <option value="長崎県">長崎県</option>
+                    <option value="熊本県">熊本県</option>
+                    <option value="大分県">大分県</option>
+                    <option value="宮崎県">宮崎県</option>
+                    <option value="鹿児島県">鹿児島県</option>
+                    <option value="沖縄県">沖縄県</option>
+                  </optgroup>
+                  <optgroup label="その他">
+                    <option value="海外">海外</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
