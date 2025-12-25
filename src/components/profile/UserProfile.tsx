@@ -36,9 +36,10 @@ interface UserProfileProps {
   onBack?: () => void;
   onEditProfile?: () => void;
   onQuestionSelect?: (questionId: string) => void;
+  onUserProfileClick?: (authorName: string) => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName, onBack, onEditProfile, onQuestionSelect }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName, onBack, onEditProfile, onQuestionSelect, onUserProfileClick }) => {
   const [activeTab, setActiveTab] = useState('posts');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
@@ -504,9 +505,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
                   onClick={() => onQuestionSelect?.(question.id)}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-sm leading-tight hover:text-blue-600 transition-colors">
+                    <button
+                      type="button"
+                      className="text-left font-semibold text-gray-900 text-sm leading-tight hover:text-blue-600 hover:underline transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUserProfileClick?.(question.author);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onUserProfileClick?.(question.author);
+                        }
+                      }}
+                      title={`${question.author}さんのプロフィールを表示`}
+                    >
                       {question.title}
-                    </h3>
+                    </button>
                   </div>
                   <p className="text-gray-600 text-xs mb-3 line-clamp-2">{question.content}</p>
                   <div className="flex items-center justify-between">

@@ -383,6 +383,7 @@ function App() {
           ) : activeSection === 'profile' ? (
             <UserProfile
               userName={selectedUser || undefined}
+              onUserProfileClick={handleUserProfileClick}
               onBack={() => {
                 setActiveSection('home');
                 setShowUserProfile(false);
