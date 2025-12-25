@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 import {
   Syringe,
   MessageCircle,
@@ -18,16 +18,10 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import QuestionCard from './components/QuestionCard';
 import CategoryCard from './components/CategoryCard';
-import AboutChusapo from './components/AboutChusapo';
 import QuestionForm from './components/QuestionForm';
 import QuestionDetail from './components/QuestionDetail';
 import SearchAndFilter, { FilterOptions } from './components/SearchAndFilter';
-import AnswerQuestions from './components/AnswerQuestions';
-import Guidelines from './components/Guidelines';
-import QuizApp from './components/quiz/QuizApp';
 import UserSelector from './components/UserSelector';
-import UserProfile from './components/profile/UserProfile';
-import { MBTICareerDiagnosisPage } from '../components/nurse-tools/mbti-career-diagnosis-page';
 import EditProfileModal from './components/profile/EditProfileModal';
 import AuthTest from './components/auth/AuthTest';
 import EmptyState from './components/EmptyState';
@@ -35,6 +29,28 @@ import { useDataProvider } from './hooks/useDataProvider';
 import { useUser } from './hooks/useUser';
 import { useToastContext } from './contexts/ToastContext';
 import { Question } from './types';
+
+// 初回ロードを軽くするため、ホーム以外の大きい画面は遅延ロードする
+const AnswerQuestions = React.lazy(() => import('./components/AnswerQuestions'));
+const Guidelines = React.lazy(() => import('./components/Guidelines'));
+const QuizApp = React.lazy(() => import('./components/quiz/QuizApp'));
+const AboutChusapo = React.lazy(() => import('./components/AboutChusapo'));
+const UserProfile = React.lazy(() => import('./components/profile/UserProfile'));
+const MBTICareerDiagnosisPage = React.lazy(() =>
+  import('../components/nurse-tools/mbti-career-diagnosis-page').then((mod) => ({
+    default: mod.MBTICareerDiagnosisPage,
+  }))
+);
+
+function SectionFallback({ label }: { label: string }) {
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8 text-center">
+        <p className="text-gray-600 font-medium">{label}を読み込み中...</p>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   // URLパラメータでテストページを表示（?auth-test）
@@ -384,46 +400,52 @@ function App() {
 
         <main className="flex-1 min-w-0 px-4 lg:px-6 xl:px-8 py-8 lg:py-12">
           {activeSection === 'answer-questions' ? (
-            <AnswerQuestions
-              questions={questionsWithAnswerCount}
-              answers={answers}
-              onSubmitAnswer={handleSubmitAnswer}
-              onUserProfileClick={handleUserProfileClick}
-              onBack={() => setActiveSection('home')}
-            />
+            <Suspense fallback={<SectionFallback label="質問に回答" />}>
+              <AnswerQuestions
+                questions={questionsWithAnswerCount}
+                answers={answers}
+                onSubmitAnswer={handleSubmitAnswer}
+                onUserProfileClick={handleUserProfileClick}
+                onBack={() => setActiveSection('home')}
+              />
+            </Suspense>
           ) : activeSection === 'guidelines' ? (
-            <Guidelines
-              onBack={() => setActiveSection('home')}
-            />
+            <Suspense fallback={<SectionFallback label="ガイドライン" />}>
+              <Guidelines onBack={() => setActiveSection('home')} />
+            </Suspense>
           ) : activeSection === 'quiz' ? (
-            <QuizApp
-              onBack={() => setActiveSection('home')}
-            />
+            <Suspense fallback={<SectionFallback label="学習クイズ" />}>
+              <QuizApp onBack={() => setActiveSection('home')} />
+            </Suspense>
           ) : activeSection === 'nurse-career-diagnosis' ? (
-            <MBTICareerDiagnosisPage />
+            <Suspense fallback={<SectionFallback label="キャリア診断AI" />}>
+              <MBTICareerDiagnosisPage />
+            </Suspense>
           ) : activeSection === 'about-chusapo' ? (
-            <AboutChusapo
-              onBack={() => setActiveSection('home')}
-            />
+            <Suspense fallback={<SectionFallback label="チューサポについて" />}>
+              <AboutChusapo onBack={() => setActiveSection('home')} />
+            </Suspense>
           ) : activeSection === 'profile' ? (
-            <UserProfile
-              userName={selectedUser || undefined}
-              onUserProfileClick={handleUserProfileClick}
-              onBack={() => {
-                setActiveSection('home');
-                setShowUserProfile(false);
-                setSelectedUser(null);
+            <Suspense fallback={<SectionFallback label="プロフィール" />}>
+              <UserProfile
+                userName={selectedUser || undefined}
+                onUserProfileClick={handleUserProfileClick}
+                onBack={() => {
+                  setActiveSection('home');
+                  setShowUserProfile(false);
+                  setSelectedUser(null);
 
-                // 少し遅延してからスクロール位置を復元（画面描画完了を待つ）
-                setTimeout(() => {
-                  window.scrollTo({
-                    top: savedScrollPosition,
-                    behavior: 'smooth'
-                  });
-                }, 100);
-              }}
-              onEditProfile={() => setShowEditProfile(true)}
-            />
+                  // 少し遅延してからスクロール位置を復元（画面描画完了を待つ）
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: savedScrollPosition,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }}
+                onEditProfile={() => setShowEditProfile(true)}
+              />
+            </Suspense>
           ) : (
             <div className="max-w-7xl mx-auto">
               {/* データソース表示（デバッグ用） */}
