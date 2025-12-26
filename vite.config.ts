@@ -91,6 +91,29 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), nurseToolsApiPlugin()],
+    build: {
+      rollupOptions: {
+        output: {
+          // 初回ロードを軽くするため、重い依存はある程度vendor chunkに分離してブラウザキャッシュを効かせる
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return;
+
+            if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/')) {
+              return 'react-vendor';
+            }
+            if (id.includes('/node_modules/@supabase/supabase-js/')) {
+              return 'supabase-vendor';
+            }
+            if (id.includes('/node_modules/@sentry/')) {
+              return 'sentry-vendor';
+            }
+            if (id.includes('/node_modules/lucide-react/')) {
+              return 'icons-vendor';
+            }
+          },
+        },
+      },
+    },
     server: {
       host: '0.0.0.0',
       port: 3000,
