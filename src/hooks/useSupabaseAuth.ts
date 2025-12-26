@@ -11,6 +11,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { devLog } from '../lib/logger';
 
 const AUTH_REQUEST_TIMEOUT_MS = 15000;
 
@@ -107,7 +108,7 @@ export const useSupabaseAuth = () => {
     // 認証状態の変更を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('認証状態変更:', event);
+        devLog('認証状態変更:', event);
         setSession(session);
         setSupabaseUser(session?.user ?? null);
 
@@ -154,7 +155,7 @@ export const useSupabaseAuth = () => {
       if (error) throw error;
 
       // サインアップ成功
-      console.log('サインアップ成功:', data);
+      devLog('サインアップ成功');
       return { success: true, data };
 
     } catch (err: any) {
@@ -185,7 +186,8 @@ export const useSupabaseAuth = () => {
 
       if (error) throw error;
 
-      console.log('ログイン成功:', data);
+      // dataにはセッショントークン等が含まれるため、ログ出力は控える
+      devLog('ログイン成功');
       return { success: true, data };
 
     } catch (err: any) {
@@ -212,7 +214,7 @@ export const useSupabaseAuth = () => {
       if (error) throw error;
 
       setAppUser(null);
-      console.log('ログアウト成功');
+      devLog('ログアウト成功');
       return { success: true };
 
     } catch (err: any) {

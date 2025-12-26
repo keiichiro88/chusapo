@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSupabaseAuth } from './useSupabaseAuth';
+import { devLog } from '../lib/logger';
 
 /**
  * 通知の型定義
@@ -62,7 +63,7 @@ export const useNotifications = () => {
       if (fetchError) {
         // テーブルが存在しない場合（404）は静かに失敗
         if (fetchError.code === '42P01' || fetchError.message?.includes('404')) {
-          console.log('Notifications table not yet created');
+          devLog('Notifications table not yet created');
           setNotifications([]);
           setUnreadCount(0);
           return;

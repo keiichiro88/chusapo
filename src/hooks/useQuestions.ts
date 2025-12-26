@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Question } from '../types';
+import { devLog } from '../lib/logger';
 
 const STORAGE_KEY = 'medconsult_questions';
 const LIKED_QUESTIONS_KEY = 'medconsult_liked_questions';
@@ -33,7 +34,7 @@ const getAuthorIdByName = (authorName: string): string | undefined => {
 
 // デモデータの強制リセット機能（開発用）
 const forceResetToNewData = () => {
-  console.log('📊 新しいデモデータ（20件）を強制読み込み中...');
+  devLog('📊 新しいデモデータ（20件）を強制読み込み中...');
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(STORAGE_KEY + '_version');
   localStorage.removeItem(LIKED_QUESTIONS_KEY);
@@ -354,7 +355,7 @@ export const useQuestions = () => {
           setQuestions(questionsWithDates);
         } else {
           // バージョンが違う場合や初回起動時は新しいデータを設定
-          console.log('📊 20件の新しいデモデータを読み込み中...');
+          devLog('📊 20件の新しいデモデータを読み込み中...');
           setQuestions(initialQuestions);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(initialQuestions));
           localStorage.setItem(STORAGE_KEY + '_version', currentVersion);
@@ -390,7 +391,7 @@ export const useQuestions = () => {
           q.id === questionId ? { ...q, hasAcceptedAnswer: hasAccepted } : q
         )
       );
-      console.log('質問データ強制更新:', { questionId, hasAccepted });
+      devLog('質問データ強制更新:', { questionId, hasAccepted });
     };
 
     window.addEventListener('bestAnswerChanged', handleBestAnswerChange as EventListener);

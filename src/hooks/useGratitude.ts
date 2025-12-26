@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Gratitude, UserAchievement, User } from '../types';
+import { devLog } from '../lib/logger';
 
 const GRATITUDE_STORAGE_KEY = 'medconsult_gratitudes';
 const ACHIEVEMENTS_STORAGE_KEY = 'medconsult_achievements';
@@ -177,7 +178,7 @@ export const useGratitude = () => {
         if ((window as any).createAchievementNotification) {
           (window as any).createAchievementNotification(achievement.title, userId);
         }
-        console.log(`🎉 新しい称号を獲得しました: ${achievement.title}`);
+        devLog(`🎉 新しい称号を獲得しました: ${achievement.title}`);
       });
     }
     

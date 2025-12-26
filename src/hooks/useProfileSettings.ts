@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { devWarn } from '../lib/logger';
 
 export interface ProfileSettings {
   avatarImage: string | null;
@@ -245,7 +246,7 @@ export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
           );
         }
       } catch (e) {
-        console.warn('Supabaseプロフィール同期に失敗しました（LocalStorageを使用）:', e);
+        devWarn('Supabaseプロフィール同期に失敗しました（LocalStorageを使用）:', e);
       }
     };
 
@@ -334,7 +335,7 @@ export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
             localStorage.setItem(storageKey, JSON.stringify(next));
           }
         } catch (e) {
-          console.warn('Supabaseプロフィール保存に失敗しました（LocalStorageに保存済み）:', e);
+          devWarn('Supabaseプロフィール保存に失敗しました（LocalStorageに保存済み）:', e);
         }
       }
 

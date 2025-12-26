@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSupabaseAuth } from './useSupabaseAuth';
+import { devLog } from '../lib/logger';
 
 /**
  * フォロー関係の型
@@ -101,7 +102,7 @@ export const useFollows = (targetUserId?: string) => {
       if (fetchError) {
         // テーブルが存在しない場合は静かに失敗
         if (fetchError.code === '42P01') {
-          console.log('Follows table not yet created');
+          devLog('Follows table not yet created');
           return false;
         }
         console.error('Failed to check follow status:', fetchError);
@@ -133,7 +134,7 @@ export const useFollows = (targetUserId?: string) => {
       if (fetchError) {
         // テーブルが存在しない/カラムがない場合は静かに失敗
         if (fetchError.code === '42P01' || fetchError.code === 'PGRST116') {
-          console.log('Profile columns not yet created');
+          devLog('Profile columns not yet created');
           return;
         }
         console.error('Failed to fetch follow counts:', fetchError);
@@ -299,7 +300,7 @@ export const useFollows = (targetUserId?: string) => {
         }
         // テーブルが存在しない場合
         if (fetchError.code === '42P01') {
-          console.log('Follows table not yet created');
+          devLog('Follows table not yet created');
           return { data: [], hasMore: false };
         }
         throw fetchError;
@@ -374,7 +375,7 @@ export const useFollows = (targetUserId?: string) => {
         }
         // テーブルが存在しない場合
         if (fetchError.code === '42P01') {
-          console.log('Follows table not yet created');
+          devLog('Follows table not yet created');
           return { data: [], hasMore: false };
         }
         throw fetchError;

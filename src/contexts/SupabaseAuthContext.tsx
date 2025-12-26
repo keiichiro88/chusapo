@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { devLog } from '../lib/logger';
 
 // アプリで使うユーザー型
 export interface AppUser {
@@ -146,9 +147,7 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (import.meta.env.DEV) {
-        console.log('認証状態変更:', event);
-      }
+      devLog('認証状態変更:', event);
       setSession(session);
       setSupabaseUser(session?.user ?? null);
 

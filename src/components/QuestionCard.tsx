@@ -20,6 +20,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { Question, Answer } from '../types';
+import { devLog } from '../lib/logger';
 
 interface QuestionCardProps {
   question: Question;
@@ -639,7 +640,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  console.log('ベストアンサー選択ボタンクリック:', answer.id);
+                                  devLog('ベストアンサー選択ボタンクリック:', answer.id);
                                   
                                   // 親コンポーネントのハンドラーを呼び出し
                                   if (onBestAnswerSelect) {
@@ -669,7 +670,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                                       if (isUpdating) return;
                                       setIsUpdating(true);
                                       
-                                      console.log('ベストアンサー解除ボタンクリック');
+                                      devLog('ベストアンサー解除ボタンクリック');
                                       
                                       // 親コンポーネントのハンドラーを呼び出し（空のIDで解除）
                                       if (onBestAnswerSelect) {

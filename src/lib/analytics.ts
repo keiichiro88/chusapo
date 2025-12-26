@@ -17,7 +17,6 @@ export const initAnalytics = () => {
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
   
   if (!measurementId || import.meta.env.DEV) {
-    console.log('📊 Analytics: 開発環境のためスキップ');
     return;
   }
 
@@ -38,8 +37,6 @@ export const initAnalytics = () => {
     page_title: document.title,
     page_location: window.location.href,
   });
-
-  console.log('📊 Google Analytics initialized');
 };
 
 /**

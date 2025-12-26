@@ -6,9 +6,22 @@ import { ToastProvider } from './contexts/ToastContext';
 import { initSentry, captureError } from './lib/sentry';
 import { initAnalytics } from './lib/analytics';
 
-// Sentry と Analytics の初期化
-initSentry();
-initAnalytics();
+function runAfterIdle(task: () => void, timeoutMs: number = 2000) {
+  // 本番のみ。開発では即時性/デバッグ優先。
+  if (!import.meta.env.PROD) return;
+  try {
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+    };
+    if (typeof win.requestIdleCallback === 'function') {
+      win.requestIdleCallback(task, { timeout: timeoutMs });
+    } else {
+      window.setTimeout(task, timeoutMs);
+    }
+  } catch {
+    // no-op
+  }
+}
 
 // エラーバウンダリーコンポーネント
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -22,7 +35,9 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
   }
 
   componentDidCatch(error: any, errorInfo: any) {
-    console.error('React Error Boundary caught an error:', error, errorInfo);
+    if (import.meta.env.DEV) {
+      console.error('React Error Boundary caught an error:', error, errorInfo);
+    }
     // Sentry にエラーを送信
     captureError(error, { componentStack: errorInfo?.componentStack });
   }
@@ -57,17 +72,19 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
           >
             再読み込み
           </button>
-          <pre style={{ 
-            marginTop: '20px', 
-            padding: '10px', 
-            background: '#fee2e2', 
-            borderRadius: '4px', 
-            fontSize: '12px',
-            maxWidth: '90vw',
-            overflow: 'auto'
-          }}>
-            {this.state.error?.toString()}
-          </pre>
+          {import.meta.env.DEV && (
+            <pre style={{ 
+              marginTop: '20px', 
+              padding: '10px', 
+              background: '#fee2e2', 
+              borderRadius: '4px', 
+              fontSize: '12px',
+              maxWidth: '90vw',
+              overflow: 'auto'
+            }}>
+              {this.state.error?.toString()}
+            </pre>
+          )}
         </div>
       );
     }
@@ -93,8 +110,22 @@ try {
       </ErrorBoundary>
     </StrictMode>
   );
+
+  // Sentry（本番のみ）：初期表示後に遅延初期化
+  runAfterIdle(() => {
+    void initSentry();
+  }, 2000);
+
+  // Analytics（本番のみ）：初期表示後に初期化（スクリプト挿入は非同期）
+  runAfterIdle(() => {
+    initAnalytics();
+  }, 1200);
 } catch (error) {
-  console.error('Failed to initialize React app:', error);
+  // 本番ではSentryへ送って、consoleへの詳細出力は抑制
+  captureError(error, { phase: 'bootstrap' });
+  if (import.meta.env.DEV) {
+    console.error('Failed to initialize React app:', error);
+  }
   const rootElement = document.getElementById('root');
   if (rootElement) {
     // innerHTML で例外文字列を差し込むと、万一のXSSリスクになるため DOM を安全に組み立てる
@@ -138,21 +169,23 @@ try {
     button.textContent = '再読み込み';
     button.addEventListener('click', () => window.location.reload());
 
-    const pre = document.createElement('pre');
-    pre.style.marginTop = '20px';
-    pre.style.padding = '10px';
-    pre.style.background = '#fee2e2';
-    pre.style.borderRadius = '4px';
-    pre.style.fontSize = '12px';
-    pre.style.maxWidth = '90vw';
-    pre.style.overflow = 'auto';
-    pre.textContent = String(error);
 
     card.appendChild(icon);
     card.appendChild(title);
     card.appendChild(message);
     card.appendChild(button);
-    card.appendChild(pre);
+    if (import.meta.env.DEV) {
+      const pre = document.createElement('pre');
+      pre.style.marginTop = '20px';
+      pre.style.padding = '10px';
+      pre.style.background = '#fee2e2';
+      pre.style.borderRadius = '4px';
+      pre.style.fontSize = '12px';
+      pre.style.maxWidth = '90vw';
+      pre.style.overflow = 'auto';
+      pre.textContent = String(error);
+      card.appendChild(pre);
+    }
 
     wrapper.appendChild(card);
     rootElement.appendChild(wrapper);

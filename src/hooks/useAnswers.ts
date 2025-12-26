@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Answer } from '../types';
+import { devLog } from '../lib/logger';
 
 const STORAGE_KEY = 'medconsult_answers';
 
@@ -126,7 +127,7 @@ export const useAnswers = () => {
         // localStorage.removeItem('medconsult_questions'); // 質問データもリセット
         
         const saved = localStorage.getItem(STORAGE_KEY);
-        console.log('LocalStorageから読み込み:', saved ? 'データあり' : 'データなし');
+        devLog('LocalStorageから読み込み:', saved ? 'データあり' : 'データなし');
         
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -138,12 +139,12 @@ export const useAnswers = () => {
             // 既存データに感謝数がない場合、0で初期化
             gratitude: a.gratitude || 0
           }));
-          console.log('読み込んだ回答データ:', answersWithDates);
+          devLog('読み込んだ回答データ:', answersWithDates);
           setAnswers(answersWithDates);
           // authorIdを追加した場合はLocalStorageを更新
           localStorage.setItem(STORAGE_KEY, JSON.stringify(answersWithDates));
         } else {
-          console.log('📝 6件のデモ回答データを読み込み中...');
+          devLog('📝 6件のデモ回答データを読み込み中...');
           setAnswers(initialAnswers);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(initialAnswers));
         }
@@ -175,7 +176,7 @@ export const useAnswers = () => {
 
   // 回答をベストアンサーにする、または解除する
   const acceptAnswer = (answerId: string, questionId: string) => {
-    console.log('acceptAnswer実行:', { answerId, questionId, action: answerId === '' ? '解除' : '選択' });
+    devLog('acceptAnswer実行:', { answerId, questionId, action: answerId === '' ? '解除' : '選択' });
     
     const updatedAnswers = answers.map(a => {
       if (a.questionId === questionId) {
@@ -188,7 +189,10 @@ export const useAnswers = () => {
     
     // LocalStorageに保存
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAnswers));
-    console.log('回答データ保存完了:', updatedAnswers.filter(a => a.questionId === questionId).map(a => ({ id: a.id, isAccepted: a.isAccepted })));
+    devLog(
+      '回答データ保存完了:',
+      updatedAnswers.filter((a) => a.questionId === questionId).map((a) => ({ id: a.id, isAccepted: a.isAccepted }))
+    );
     
     // 状態を更新
     setAnswers(updatedAnswers);

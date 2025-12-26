@@ -23,6 +23,7 @@ import {
 import { Question, Answer } from '../types';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import { useProfileSettings } from '../hooks/useProfileSettings';
+import { devLog } from '../lib/logger';
 
 interface User {
   id: string;
@@ -273,7 +274,7 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
     const result = await onToggleGratitude(answerId, authorId);
     
     if (result.success) {
-      console.log(isCurrentlyGiven ? '感謝を取り消しました。' : '感謝を贈りました！');
+      devLog(isCurrentlyGiven ? '感謝を取り消しました。' : '感謝を贈りました！');
     } else {
       // 失敗した場合はキャッシュを戻す
       setGratitudeCache(prev => ({ ...prev, [answerId]: isCurrentlyGiven }));

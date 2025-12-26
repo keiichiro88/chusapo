@@ -33,6 +33,7 @@ import { useReports, type ReportTargetType } from './hooks/useReports';
 import { useUser } from './hooks/useUser';
 import { useToastContext } from './contexts/ToastContext';
 import { Question } from './types';
+import { devLog } from './lib/logger';
 
 // 初回ロードを軽くするため、ホーム以外の大きい画面は遅延ロードする
 const AnswerQuestions = React.lazy(() => import('./components/AnswerQuestions'));
@@ -437,7 +438,7 @@ function App() {
   };
 
   const handleNavigate = (section: string) => {
-    console.log('Navigating to section:', section);
+    devLog('Navigating to section:', section);
 
     // サイドバーのカテゴリ選択（ホームに戻しつつフィルタ適用）
     const mappedCategory = categoryIdToName[section];
