@@ -90,6 +90,7 @@ const STRESSOR_OPTIONS = [
   '教育体制が弱い',
   '相談できる人がいない',
 ] as const;
+const DEEP_DIVE_FREE_TEXT_MAX = 500;
 
 const STORAGE_KEY = 'mbti-diagnosis-result';
 const SESSION_KEY = 'mbti-diagnosis-session';
@@ -105,6 +106,7 @@ interface SavedResult {
 export function MBTICareerDiagnosisPage() {
   const { session, isAuthenticated } = useSupabaseAuth();
   const accessToken = session?.access_token || null;
+  const isDebug = import.meta.env.DEV && new URLSearchParams(window.location.search).has('mbti-debug');
 
   const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -322,9 +324,22 @@ export function MBTICareerDiagnosisPage() {
         return await response.json();
       } catch (error) {
         console.error('Failed to fetch AI advice:', error);
-        if (error instanceof Error && error.message.includes('マイグレーション')) {
-          const msg = error.message;
-          return { careerAdvice: msg, stressManagement: msg, teamCompatibility: msg };
+        if (error instanceof Error) {
+          const raw = error.message || '';
+          const msg =
+            raw === 'Failed to fetch'
+              ? '通信エラーが発生しました。時間をおいて再度お試しください。'
+              : raw;
+          // サーバーからのユーザー向けメッセージはそのまま表示する
+          if (
+            msg.includes('マイグレーション') ||
+            msg.includes('環境変数') ||
+            msg.includes('不正') ||
+            msg.includes('上限') ||
+            msg.includes('長すぎ')
+          ) {
+            return { careerAdvice: msg, stressManagement: msg, teamCompatibility: msg };
+          }
         }
         return {
           careerAdvice: `${mbtiType}のあなたは、独自の強みを持っています。自信を持って自分に合う環境を探しましょう。`,
@@ -543,6 +558,44 @@ export function MBTICareerDiagnosisPage() {
       <SkipLink targetId="mbti-main">メインコンテンツへスキップ</SkipLink>
 
       <div id="mbti-main" className="max-w-3xl mx-auto">
+        {isDebug && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <span className="text-xs font-bold text-amber-800">DEV: mbti-debug</span>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-amber-200 text-amber-800 hover:bg-amber-100"
+              onClick={() => {
+                const demo = PERSONALITY_TYPES.ESTJ;
+                setResult(demo);
+                setFinalScores({ E: 18, I: 12, S: 16, N: 14, T: 17, F: 13, J: 16, P: 14 });
+                setAiAdvice(null);
+                setAiError(false);
+                setIsLoadingAi(false);
+                resetDeepDive();
+                setAppState(AppState.DEEP_DIVE);
+              }}
+            >
+              深掘りへ
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-white border border-amber-200 text-amber-800 hover:bg-amber-100"
+              onClick={() => {
+                const demo = PERSONALITY_TYPES.ESTJ;
+                setResult(demo);
+                setFinalScores({ E: 18, I: 12, S: 16, N: 14, T: 17, F: 13, J: 16, P: 14 });
+                setAiAdvice(null);
+                setAiError(false);
+                setIsLoadingAi(false);
+                resetDeepDive();
+                setAppState(AppState.RESULT);
+              }}
+            >
+              結果へ
+            </button>
+          </div>
+        )}
+
         {/* タイトル */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-teal-700">
@@ -879,11 +932,17 @@ export function MBTICareerDiagnosisPage() {
               {/* Q7 自由記述 */}
               {deepDiveIndex === 6 && (
                 <div className="space-y-3">
-                  <p className="font-bold text-slate-800">今いちばんの悩み／叶えたい働き方（任意）</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-bold text-slate-800">今いちばんの悩み／叶えたい働き方（任意）</p>
+                    <span className="text-xs text-slate-500">
+                      {(deepDiveAnswers.freeText?.length ?? 0)}/{DEEP_DIVE_FREE_TEXT_MAX}
+                    </span>
+                  </div>
                   <textarea
                     value={deepDiveAnswers.freeText ?? ''}
                     onChange={(e) => setDeepDiveAnswers((prev) => ({ ...prev, freeText: e.target.value }))}
                     placeholder="例：夜勤がきついので日勤中心で、患者さんと関われる仕事がしたい…など"
+                    maxLength={DEEP_DIVE_FREE_TEXT_MAX}
                     className="w-full min-h-[120px] rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                   <p className="text-xs text-slate-500">※空欄でもOKです</p>
