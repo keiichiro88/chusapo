@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
@@ -20,10 +20,13 @@ import {
   PersonalityResult,
 } from '../../lib/nurse-tools/mbti-types';
 import { MBTIButton, MBTICard, MBTIProgressBar, SkipLink, LikertButtonGroup } from './mbti-ui';
-import { MBTIHistory } from './mbti-history';
 import { MBTIResultSection } from './mbti-result-section';
 import { useSupabaseAuth } from '../../src/hooks/useSupabaseAuth';
 import { generateUUID } from '../../src/lib/uuid';
+
+const MBTIHistory = React.lazy(() =>
+  import('./mbti-history').then((mod) => ({ default: mod.MBTIHistory }))
+);
 
 enum AppState {
   WELCOME,
@@ -1016,12 +1019,14 @@ export function MBTICareerDiagnosisPage() {
             >
               <X className="w-4 h-4" />
             </button>
-            <MBTIHistory
-              history={diagnosisHistory}
-              onSelect={(item) => selectFromHistory(item)}
-              onDelete={(id) => deleteFromHistory(id)}
-              onClear={() => clearHistory()}
-            />
+            <Suspense fallback={<div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center text-slate-600 font-medium">履歴を読み込み中...</div>}>
+              <MBTIHistory
+                history={diagnosisHistory}
+                onSelect={(item) => selectFromHistory(item)}
+                onDelete={(id) => deleteFromHistory(id)}
+                onClear={() => clearHistory()}
+              />
+            </Suspense>
           </div>
         </div>
       )}

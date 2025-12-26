@@ -1,9 +1,7 @@
 import React, { memo, Suspense, useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
 import { PersonalityResult, AIAdvice, MBTIScores, DiagnosisHistoryItem } from '../../lib/nurse-tools/mbti-types';
 import { RECRUITMENT_SITES } from '../../lib/nurse-tools/mbti-constants';
 import { MBTICard, MBTIBadge, MBTIButton } from './mbti-ui';
-import { generateMBTIPDFFromElement, generateMBTIPDF } from '../../lib/nurse-tools/mbti-pdf-generator';
 import { 
   Heart, Activity, Sparkles, CheckCircle2, RotateCcw, ExternalLink, 
   Share2, Download, RefreshCw, Star, FileText 
@@ -272,6 +270,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
     
     setIsSavingImage(true);
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(resultCardRef.current, {
         backgroundColor: '#f0fdfa',
         scale: 2,
@@ -299,6 +298,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
     setIsSavingPDF(true);
     setShowShareMenu(false);
     try {
+      const { generateMBTIPDFFromElement, generateMBTIPDF } = await import('../../lib/nurse-tools/mbti-pdf-generator');
       const target = pdfContentRef.current;
       if (target) {
         // html2canvas版を使用（日本語対応）
