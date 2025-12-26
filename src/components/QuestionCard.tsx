@@ -281,8 +281,24 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           >
             {/* ストーリー風リング */}
             <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-              <div className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner`}>
-                {avatar.initials}
+              <div
+                className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm shadow-inner ${
+                  question.authorAvatarUrl
+                    ? ''
+                    : `bg-gradient-to-br ${question.authorAvatarGradient ?? avatar.gradient}`
+                }`}
+              >
+                {question.authorAvatarUrl ? (
+                  <img
+                    src={question.authorAvatarUrl}
+                    alt={`${question.author}のアイコン`}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  avatar.initials
+                )}
               </div>
             </div>
             {/* 専門家バッジ */}
@@ -473,8 +489,24 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                         <div key={answer.id} className="bg-gray-50 rounded-2xl p-5">
                           <div className="flex items-center space-x-3 mb-3">
                             <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-md">
-                              <div className={`h-full w-full bg-gradient-to-br ${answerAvatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs`}>
-                                {answerAvatar.initials}
+                              <div
+                                className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs ${
+                                  answer.authorAvatarUrl
+                                    ? ''
+                                    : `bg-gradient-to-br ${answer.authorAvatarGradient ?? answerAvatar.gradient}`
+                                }`}
+                              >
+                                {answer.authorAvatarUrl ? (
+                                  <img
+                                    src={answer.authorAvatarUrl}
+                                    alt={`${answer.author}のアイコン`}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
+                                ) : (
+                                  answerAvatar.initials
+                                )}
                               </div>
                             </div>
                             <div className="flex-1">

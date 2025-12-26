@@ -76,6 +76,8 @@ const convertDisplayToQuestion = (dq: DisplayQuestion): Question => ({
   author: dq.author,
   authorRole: dq.authorRole,
   authorId: dq.authorId,
+  authorAvatarUrl: dq.authorAvatarUrl ?? null,
+  authorAvatarGradient: dq.authorAvatarGradient ?? null,
   timeAgo: dq.timeAgo,
   likes: dq.likes,
   answers: dq.answers,
@@ -94,6 +96,8 @@ const convertDisplayToAnswer = (da: DisplayAnswer): Answer => ({
   author: da.author,
   authorRole: da.authorRole,
   authorId: da.authorId,
+  authorAvatarUrl: da.authorAvatarUrl ?? null,
+  authorAvatarGradient: da.authorAvatarGradient ?? null,
   gratitude: da.gratitude,
   isAccepted: da.isAccepted,
   createdAt: da.createdAt

@@ -379,8 +379,27 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                 >
                   {/* ストーリー風リング */}
                   <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-[2px] shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-                    <div className={`h-full w-full bg-gradient-to-br ${generateUserAvatar(question.author, question.authorRole).gradient} rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner`}>
-                      {generateUserAvatar(question.author, question.authorRole).initials}
+                    <div
+                      className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg shadow-inner ${
+                        question.authorAvatarUrl
+                          ? ''
+                          : `bg-gradient-to-br ${
+                              question.authorAvatarGradient ??
+                              generateUserAvatar(question.author, question.authorRole).gradient
+                            }`
+                      }`}
+                    >
+                      {question.authorAvatarUrl ? (
+                        <img
+                          src={question.authorAvatarUrl}
+                          alt={`${question.author}のアイコン`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        generateUserAvatar(question.author, question.authorRole).initials
+                      )}
                     </div>
                   </div>
                   
@@ -636,9 +655,23 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                             <div className="relative">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-[2px] shadow-md">
                                 <div
-                                  className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-inner`}
+                                  className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-inner ${
+                                    myProfileSettings.avatarImage
+                                      ? ''
+                                      : `bg-gradient-to-br ${myProfileSettings.avatarGradient ?? avatar.gradient}`
+                                  }`}
                                 >
-                                  {avatar.initials}
+                                  {myProfileSettings.avatarImage ? (
+                                    <img
+                                      src={myProfileSettings.avatarImage}
+                                      alt={`${effectiveUser.name}のアイコン`}
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                      decoding="async"
+                                    />
+                                  ) : (
+                                    avatar.initials
+                                  )}
                                 </div>
                               </div>
                               {badge && (
@@ -747,8 +780,27 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
                           
                           {/* ストーリー風リング */}
                           <div className="relative h-12 w-12 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-[2px] shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-                            <div className={`h-full w-full bg-gradient-to-br ${generateUserAvatar(answer.author, answer.authorRole).gradient} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner`}>
-                              {generateUserAvatar(answer.author, answer.authorRole).initials}
+                            <div
+                              className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm shadow-inner ${
+                                answer.authorAvatarUrl
+                                  ? ''
+                                  : `bg-gradient-to-br ${
+                                      answer.authorAvatarGradient ??
+                                      generateUserAvatar(answer.author, answer.authorRole).gradient
+                                    }`
+                              }`}
+                            >
+                              {answer.authorAvatarUrl ? (
+                                <img
+                                  src={answer.authorAvatarUrl}
+                                  alt={`${answer.author}のアイコン`}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              ) : (
+                                generateUserAvatar(answer.author, answer.authorRole).initials
+                              )}
                             </div>
                           </div>
                           

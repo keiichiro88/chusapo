@@ -304,8 +304,24 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
                       {/* アバター */}
                       <div className="relative">
                         <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-lg">
-                          <div className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner`}>
-                            {avatar.initials}
+                          <div
+                            className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm shadow-inner ${
+                              selectedQuestion.authorAvatarUrl
+                                ? ''
+                                : `bg-gradient-to-br ${selectedQuestion.authorAvatarGradient ?? avatar.gradient}`
+                            }`}
+                          >
+                            {selectedQuestion.authorAvatarUrl ? (
+                              <img
+                                src={selectedQuestion.authorAvatarUrl}
+                                alt={`${selectedQuestion.author}のアイコン`}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : (
+                              avatar.initials
+                            )}
                           </div>
                         </div>
                         {expertBadge && (
@@ -392,8 +408,24 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
                           {/* アバター */}
                           <div className="relative">
                             <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-md">
-                              <div className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-inner`}>
-                                {avatar.initials}
+                              <div
+                                className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-inner ${
+                                  answer.authorAvatarUrl
+                                    ? ''
+                                    : `bg-gradient-to-br ${answer.authorAvatarGradient ?? avatar.gradient}`
+                                }`}
+                              >
+                                {answer.authorAvatarUrl ? (
+                                  <img
+                                    src={answer.authorAvatarUrl}
+                                    alt={`${answer.author}のアイコン`}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
+                                ) : (
+                                  avatar.initials
+                                )}
                               </div>
                             </div>
                             {expertBadge && (
@@ -487,9 +519,23 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
                       <div className="relative">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-md">
                           <div
-                            className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-inner`}
+                            className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-inner ${
+                              myProfileSettings.avatarImage
+                                ? ''
+                                : `bg-gradient-to-br ${myProfileSettings.avatarGradient ?? avatar.gradient}`
+                            }`}
                           >
-                            {avatar.initials}
+                            {myProfileSettings.avatarImage ? (
+                              <img
+                                src={myProfileSettings.avatarImage}
+                                alt={`${authorName}のアイコン`}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : (
+                              avatar.initials
+                            )}
                           </div>
                         </div>
                         {badge && (
@@ -703,8 +749,24 @@ const AnswerQuestions: React.FC<AnswerQuestionsProps> = ({
                         {/* アバター */}
                         <div className="relative">
                           <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-0.5 shadow-md">
-                            <div className={`h-full w-full bg-gradient-to-br ${avatar.gradient} rounded-full flex items-center justify-center text-white font-bold text-xs shadow-inner`}>
-                              {avatar.initials}
+                            <div
+                              className={`h-full w-full rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-inner ${
+                                question.authorAvatarUrl
+                                  ? ''
+                                  : `bg-gradient-to-br ${question.authorAvatarGradient ?? avatar.gradient}`
+                              }`}
+                            >
+                              {question.authorAvatarUrl ? (
+                                <img
+                                  src={question.authorAvatarUrl}
+                                  alt={`${question.author}のアイコン`}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              ) : (
+                                avatar.initials
+                              )}
                             </div>
                           </div>
                           {expertBadge && (

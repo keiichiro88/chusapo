@@ -32,6 +32,8 @@ export interface SupabaseQuestion {
     name: string;
     role: string;
     tier: string;
+    avatar_url?: string | null;
+    avatar_gradient?: string | null;
   };
 }
 
@@ -43,6 +45,8 @@ export interface DisplayQuestion {
   author: string;
   authorRole: string;
   authorId: string;
+  authorAvatarUrl?: string | null;
+  authorAvatarGradient?: string | null;
   timeAgo: string;
   likes: number;
   answers: number;
@@ -115,6 +119,8 @@ export const useSupabaseQuestions = () => {
       author: q.profiles?.name || '匿名ユーザー',
       authorRole: q.profiles?.role || '医療従事者',
       authorId: q.author_id,
+      authorAvatarUrl: q.profiles?.avatar_url ?? null,
+      authorAvatarGradient: q.profiles?.avatar_gradient ?? null,
       timeAgo: getTimeAgo(q.created_at),
       likes: q.likes_count,
       answers: q.answers_count,
@@ -216,7 +222,9 @@ export const useSupabaseQuestions = () => {
             id,
             name,
             role,
-            tier
+            tier,
+            avatar_url,
+            avatar_gradient
           )
         `);
 
@@ -328,7 +336,9 @@ export const useSupabaseQuestions = () => {
             id,
             name,
             role,
-            tier
+            tier,
+            avatar_url,
+            avatar_gradient
           )
         `)
         .single();

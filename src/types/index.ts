@@ -5,6 +5,8 @@ export interface Question {
   author: string;
   authorRole: string;
   authorId?: string; // 投稿者のユーザーID
+  authorAvatarUrl?: string | null; // 投稿者のアイコンURL（プロフィール画像）
+  authorAvatarGradient?: string | null; // 投稿者のアバター背景グラデ（画像未設定時の表示用）
   timeAgo: string;
   likes: number;
   answers: number;
@@ -20,6 +22,8 @@ export interface Answer {
   author: string;
   authorRole: string;
   authorId?: string; // 投稿者のユーザーID
+  authorAvatarUrl?: string | null; // 投稿者のアイコンURL（プロフィール画像）
+  authorAvatarGradient?: string | null; // 投稿者のアバター背景グラデ（画像未設定時の表示用）
   gratitude: number; // 感謝の数
   isAccepted: boolean;
   createdAt: Date;

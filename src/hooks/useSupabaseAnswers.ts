@@ -30,6 +30,8 @@ export interface SupabaseAnswer {
     name: string;
     role: string;
     tier: string;
+    avatar_url?: string | null;
+    avatar_gradient?: string | null;
   };
 }
 
@@ -41,6 +43,8 @@ export interface DisplayAnswer {
   author: string;
   authorRole: string;
   authorId: string;
+  authorAvatarUrl?: string | null;
+  authorAvatarGradient?: string | null;
   gratitude: number;
   isAccepted: boolean;
   createdAt: Date;
@@ -74,6 +78,8 @@ export const useSupabaseAnswers = () => {
       author: a.profiles?.name || '匿名ユーザー',
       authorRole: a.profiles?.role || '医療従事者',
       authorId: a.author_id,
+      authorAvatarUrl: a.profiles?.avatar_url ?? null,
+      authorAvatarGradient: a.profiles?.avatar_gradient ?? null,
       gratitude: a.gratitude_count,
       isAccepted: a.is_accepted,
       createdAt: new Date(a.created_at)
@@ -123,7 +129,9 @@ export const useSupabaseAnswers = () => {
             id,
             name,
             role,
-            tier
+            tier,
+            avatar_url,
+            avatar_gradient
           )
         `)
         .eq('question_id', questionId)
@@ -264,7 +272,9 @@ export const useSupabaseAnswers = () => {
             id,
             name,
             role,
-            tier
+            tier,
+            avatar_url,
+            avatar_gradient
           )
         `)
         .single();
