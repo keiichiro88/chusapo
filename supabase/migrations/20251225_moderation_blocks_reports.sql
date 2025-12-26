@@ -70,3 +70,4 @@ CREATE INDEX IF NOT EXISTS idx_reports_reported_user_id ON public.reports(report
 CREATE INDEX IF NOT EXISTS idx_reports_target ON public.reports(target_type, target_id);
 
 
+

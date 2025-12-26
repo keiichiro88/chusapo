@@ -79,7 +79,7 @@ const ResultCard = memo(function ResultCard({
   resultCardRef: React.RefObject<HTMLDivElement>;
 }) {
   return (
-    <div ref={resultCardRef}>
+    <div ref={resultCardRef} data-pdf-block="result-card">
       <MBTICard className={`border-t-4 ${typeColor.border} relative overflow-hidden mt-8 animate-scale-in card-hover-lift`}>
         <div className={`absolute top-0 right-0 -mt-4 -mr-4 ${typeColor.bg} w-32 h-32 rounded-full opacity-60 blur-2xl`}></div>
         <div className={`absolute bottom-0 left-0 -mb-4 -ml-4 ${typeColor.bg} w-24 h-24 rounded-full opacity-40 blur-xl`}></div>
@@ -291,15 +291,17 @@ export const MBTIResultSection = memo(function MBTIResultSection({
     }
   };
 
-  // 結果をPDFとして保存
+  // 結果をPDFとして保存（日本語対応版）
+  // html2canvasで画像化することで日本語を正しく表示
   const saveResultAsPDF = async () => {
     if (!finalScores) return;
     
     setIsSavingPDF(true);
     setShowShareMenu(false);
     try {
-      const target = pdfContentRef.current || resultCardRef.current;
+      const target = pdfContentRef.current;
       if (target) {
+        // html2canvas版を使用（日本語対応）
         await generateMBTIPDFFromElement(target, {
           mbtiType: result.type,
           result,
@@ -308,6 +310,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
           diagnosisDate: new Date().toLocaleDateString('ja-JP'),
         });
       } else {
+        // フォールバック（英語版）
         await generateMBTIPDF({
           mbtiType: result.type,
           result,
@@ -389,26 +392,30 @@ export const MBTIResultSection = memo(function MBTIResultSection({
 
         {/* スコア詳細（レーダーチャート） */}
         {finalScores && (
-          <MBTICard className="animate-fade-in-up delay-550">
-            <h3 className="font-bold text-lg text-slate-800 mb-4 text-center">あなたの性格バランス</h3>
-            <Suspense fallback={<div className="h-[280px] bg-slate-100 animate-pulse rounded-xl" />}>
-              <MBTIRadarChart scores={finalScores} />
-            </Suspense>
-          </MBTICard>
+          <div data-pdf-block="balance-chart">
+            <MBTICard className="animate-fade-in-up delay-550">
+              <h3 className="font-bold text-lg text-slate-800 mb-4 text-center">あなたの性格バランス</h3>
+              <Suspense fallback={<div className="h-[280px] bg-slate-100 animate-pulse rounded-xl" />}>
+                <MBTIRadarChart scores={finalScores} />
+              </Suspense>
+            </MBTICard>
+          </div>
         )}
 
         {/* AI Advice Section */}
-        <AIAdviceSection
-          aiAdvice={aiAdvice}
-          isLoadingAi={isLoadingAi}
-          aiError={aiError}
-          aiQuota={aiQuota}
-          aiRetryCount={aiRetryCount}
-          onRetry={handleRetry}
-        />
+        <div data-pdf-block="ai-advice">
+          <AIAdviceSection
+            aiAdvice={aiAdvice}
+            isLoadingAi={isLoadingAi}
+            aiError={aiError}
+            aiQuota={aiQuota}
+            aiRetryCount={aiRetryCount}
+            onRetry={handleRetry}
+          />
+        </div>
 
         {/* Recommendations Section */}
-        <div className="space-y-6 pt-6 animate-fade-in-up delay-700">
+        <div className="space-y-6 pt-6 animate-fade-in-up delay-700" data-pdf-block="recommendations">
           <div className="text-center">
             <h3 className="text-xl font-bold text-slate-800 mb-1">あなたにおすすめの転職サイト</h3>
             <p className="text-sm text-slate-500">あなたの性格タイプとの相性が高いサービスです</p>
@@ -496,21 +503,21 @@ export const MBTIResultSection = memo(function MBTIResultSection({
         </div>
 
         {/* キャリアパス可視化 */}
-        <div className="animate-fade-in-up delay-750">
+        <div className="animate-fade-in-up delay-750" data-pdf-block="career-path">
           <Suspense fallback={<div className="h-[400px] bg-slate-100 animate-pulse rounded-xl" />}>
             <MBTICareerPath mbtiType={result.type} />
           </Suspense>
         </div>
 
         {/* 16タイプマップ */}
-        <div className="animate-fade-in-up delay-775">
+        <div className="animate-fade-in-up delay-775" data-pdf-block="type-map">
           <Suspense fallback={<div className="h-[350px] bg-slate-100 animate-pulse rounded-xl" />}>
             <MBTITypeMap currentType={result.type} />
           </Suspense>
         </div>
 
         {/* 友達との相性診断 */}
-        <div className="animate-fade-in-up delay-800">
+        <div className="animate-fade-in-up delay-800" data-pdf-block="friend-compatibility">
           <Suspense fallback={<div className="h-[200px] bg-slate-100 animate-pulse rounded-xl" />}>
             <MBTIFriendComparison myType={result.type} />
           </Suspense>

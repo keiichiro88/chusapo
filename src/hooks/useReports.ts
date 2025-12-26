@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSupabaseAuth } from './useSupabaseAuth';
+import { generateUUID } from '../lib/uuid';
 
 export type ReportTargetType = 'question' | 'answer' | 'user';
 
@@ -61,7 +62,7 @@ export function useReports() {
 
       // ローカル（未ログイン/デモ用）
       appendLocalReport({
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         createdAt: new Date().toISOString(),
         reporterId: supabaseUser?.id,
         targetType,
@@ -77,5 +78,6 @@ export function useReports() {
 
   return { report };
 }
+
 
 

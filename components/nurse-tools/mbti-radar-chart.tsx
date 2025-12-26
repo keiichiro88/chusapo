@@ -87,8 +87,8 @@ export function MBTIRadarChart({ scores }: MBTIRadarChartProps) {
   return (
     <div className="w-full space-y-4">
       {/* レーダーチャート */}
-      <div className="h-[280px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[280px] w-full min-h-[280px]">
+        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
             <PolarGrid stroke="#e2e8f0" />
             <PolarAngleAxis

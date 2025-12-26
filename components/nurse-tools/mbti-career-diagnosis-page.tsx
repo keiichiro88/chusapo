@@ -23,6 +23,7 @@ import { MBTIButton, MBTICard, MBTIProgressBar, SkipLink, LikertButtonGroup } fr
 import { MBTIHistory } from './mbti-history';
 import { MBTIResultSection } from './mbti-result-section';
 import { useSupabaseAuth } from '../../src/hooks/useSupabaseAuth';
+import { generateUUID } from '../../src/lib/uuid';
 
 enum AppState {
   WELCOME,
@@ -90,7 +91,7 @@ export function MBTICareerDiagnosisPage() {
       setSessionId(existing);
       return;
     }
-    const newSessionId = crypto.randomUUID();
+    const newSessionId = generateUUID();
     localStorage.setItem(SESSION_KEY, newSessionId);
     setSessionId(newSessionId);
   }, []);
@@ -136,7 +137,7 @@ export function MBTICareerDiagnosisPage() {
 
   const addToHistory = useCallback((personalityResult: PersonalityResult, scoresToSave: MBTIScores) => {
     const newItem: DiagnosisHistoryItem = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       mbtiType: personalityResult.type,
       title: personalityResult.title,
       scores: scoresToSave,
@@ -187,7 +188,7 @@ export function MBTICareerDiagnosisPage() {
         const currentSession =
           sessionId ||
           (() => {
-            const newId = crypto.randomUUID();
+            const newId = generateUUID();
             localStorage.setItem(SESSION_KEY, newId);
             setSessionId(newId);
             return newId;
@@ -456,12 +457,12 @@ export function MBTICareerDiagnosisPage() {
         {appState === AppState.WELCOME && (
           <MBTICard className="bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-100">
             <div className="flex flex-col items-center text-center space-y-6">
-              <div className="w-full relative h-56 bg-teal-100 rounded-3xl overflow-hidden flex items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-200 to-blue-200 opacity-50" />
-                <div className="relative z-10 bg-white/90 p-6 rounded-2xl shadow-lg max-w-xs">
-                  <Stethoscope className="w-10 h-10 text-teal-500 mx-auto mb-2" />
-                  <h3 className="text-lg font-bold text-teal-800">あなたに合う働き方は？</h3>
-                </div>
+              <div className="w-full relative h-56 sm:h-64 md:h-72 bg-teal-100 rounded-3xl overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/AI診断画像.png" 
+                  alt="ナースキャリア診断AI - あなたはどのタイプ？AIがあなたの強みと働き方を分析！" 
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
               </div>
 
               <div className="space-y-3">
@@ -482,8 +483,8 @@ export function MBTICareerDiagnosisPage() {
                   { icon: Heart, text: '相性の良いサイト紹介' },
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                    <item.icon className="w-6 h-6 text-pink-500 mb-2" />
-                    <span className="text-sm font-medium">{item.text}</span>
+                    <item.icon className="w-6 h-6 text-teal-500 mb-2" />
+                    <span className="text-sm font-medium text-slate-700">{item.text}</span>
                   </div>
                 ))}
               </div>
