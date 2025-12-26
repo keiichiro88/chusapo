@@ -16,6 +16,7 @@ import { useSupabaseAnswers, DisplayAnswer } from './useSupabaseAnswers';
 import { useQuestions as useLocalQuestions } from './useQuestions';
 import { useAnswers as useLocalAnswers } from './useAnswers';
 import { Question, Answer } from '../types';
+import { useProfileSettings } from './useProfileSettings';
 
 /**
  * useDataProviderの戻り値の型
@@ -104,7 +105,12 @@ const convertDisplayToAnswer = (da: DisplayAnswer): Answer => ({
 });
 
 export const useDataProvider = (): DataProviderReturn => {
-  const { isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
+  const { isAuthenticated, isLoading: authLoading, user: supabaseAppUser } = useSupabaseAuth();
+  const authUserInfo = supabaseAppUser
+    ? { id: supabaseAppUser.id, name: supabaseAppUser.name, role: supabaseAppUser.role }
+    : null;
+  // プロフィール（アイコン等）を全画面で一貫して反映させるため、ここで監視する
+  const { settings: myProfileSettings } = useProfileSettings(authUserInfo);
 
   // Supabaseフック
   const supabaseQuestions = useSupabaseQuestions();
@@ -127,25 +133,89 @@ export const useDataProvider = (): DataProviderReturn => {
    * 質問データの取得
    */
   const questions: Question[] = useMemo(() => {
+    const myAvatarUrl = myProfileSettings.avatarImage ?? null;
+    const myAvatarGradient = myProfileSettings.avatarGradient ?? null;
+    const myId = supabaseAppUser?.id ?? null;
+    const myName = myProfileSettings.name;
+
     if (isAuthenticated) {
-      return supabaseQuestions.questions.map(convertDisplayToQuestion);
+      const base = supabaseQuestions.questions.map(convertDisplayToQuestion);
+      // 自分の質問は最新のプロフィール設定（アイコン/グラデ）を優先して上書き
+      return base.map((q) => {
+        const isMine = myId ? q.authorId === myId : q.author === myName;
+        if (!isMine) return q;
+        return {
+          ...q,
+          authorAvatarUrl: myAvatarUrl ?? q.authorAvatarUrl ?? null,
+          authorAvatarGradient: myAvatarGradient ?? q.authorAvatarGradient ?? null,
+        };
+      });
     }
-    return localQuestions.questions;
-  }, [isAuthenticated, supabaseQuestions.questions, localQuestions.questions]);
+    const base = localQuestions.questions;
+    // LocalStorage運用でも、自分の質問は最新プロフィールアイコンを反映
+    return base.map((q) => {
+      const isMine = myId ? q.authorId === myId : q.author === myName;
+      if (!isMine) return q;
+      return {
+        ...q,
+        authorAvatarUrl: myAvatarUrl ?? q.authorAvatarUrl ?? null,
+        authorAvatarGradient: myAvatarGradient ?? q.authorAvatarGradient ?? null,
+      };
+    });
+  }, [
+    isAuthenticated,
+    supabaseQuestions.questions,
+    localQuestions.questions,
+    supabaseAppUser?.id,
+    myProfileSettings.avatarImage,
+    myProfileSettings.avatarGradient,
+    myProfileSettings.name,
+  ]);
 
   /**
    * 回答データの取得（全キャッシュを統合）
    */
   const answers: Answer[] = useMemo(() => {
+    const myAvatarUrl = myProfileSettings.avatarImage ?? null;
+    const myAvatarGradient = myProfileSettings.avatarGradient ?? null;
+    const myId = supabaseAppUser?.id ?? null;
+    const myName = myProfileSettings.name;
+
     if (isAuthenticated) {
       const allAnswers: DisplayAnswer[] = [];
       supabaseAnswersCache.forEach(questionAnswers => {
         allAnswers.push(...questionAnswers);
       });
-      return allAnswers.map(convertDisplayToAnswer);
+      const base = allAnswers.map(convertDisplayToAnswer);
+      return base.map((a) => {
+        const isMine = myId ? a.authorId === myId : a.author === myName;
+        if (!isMine) return a;
+        return {
+          ...a,
+          authorAvatarUrl: myAvatarUrl ?? a.authorAvatarUrl ?? null,
+          authorAvatarGradient: myAvatarGradient ?? a.authorAvatarGradient ?? null,
+        };
+      });
     }
-    return localAnswers.answers;
-  }, [isAuthenticated, supabaseAnswersCache, localAnswers.answers]);
+    const base = localAnswers.answers;
+    return base.map((a) => {
+      const isMine = myId ? a.authorId === myId : a.author === myName;
+      if (!isMine) return a;
+      return {
+        ...a,
+        authorAvatarUrl: myAvatarUrl ?? a.authorAvatarUrl ?? null,
+        authorAvatarGradient: myAvatarGradient ?? a.authorAvatarGradient ?? null,
+      };
+    });
+  }, [
+    isAuthenticated,
+    supabaseAnswersCache,
+    localAnswers.answers,
+    supabaseAppUser?.id,
+    myProfileSettings.avatarImage,
+    myProfileSettings.avatarGradient,
+    myProfileSettings.name,
+  ]);
 
   /**
    * 質問を追加
