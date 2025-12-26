@@ -58,7 +58,8 @@ function SectionFallback({ label }: { label: string }) {
 
 function App() {
   // URLパラメータでテストページを表示（?auth-test）
-  const isAuthTest = window.location.search.includes('auth-test');
+  // 本番で露出させない（攻撃面/混乱の原因になるため）
+  const isAuthTest = import.meta.env.DEV && window.location.search.includes('auth-test');
   if (isAuthTest) {
     return <AuthTest />;
   }

@@ -22,6 +22,16 @@ type QuotaResult = {
   daily_limit: number;
 };
 
+type DeepDiveAnswers = {
+  experienceYears?: string;
+  currentArea?: string;
+  desiredTiming?: string;
+  constraints?: string[];
+  priorities?: string[];
+  stressors?: string[];
+  freeText?: string;
+};
+
 let cachedGeminiKey = '';
 let cachedGenAI: GoogleGenerativeAI | null = null;
 
@@ -99,10 +109,11 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
     }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { mbtiType, personalityData, sessionId } = body as {
+    const { mbtiType, personalityData, sessionId, deepDive } = body as {
       mbtiType: string;
       personalityData: PersonalityResult;
       sessionId?: string;
+      deepDive?: DeepDiveAnswers;
     };
 
     if (!mbtiType || !personalityData) {
@@ -162,6 +173,18 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
       },
     });
 
+    const hasDeepDive =
+      !!deepDive &&
+      !!(
+        deepDive.experienceYears ||
+        deepDive.currentArea ||
+        deepDive.desiredTiming ||
+        (deepDive.constraints?.length ?? 0) > 0 ||
+        (deepDive.priorities?.length ?? 0) > 0 ||
+        (deepDive.stressors?.length ?? 0) > 0 ||
+        (deepDive.freeText?.trim() ?? '') !== ''
+      );
+
     const prompt = `
 あなたは看護師専門のキャリアカウンセラーです。豊富な臨床経験と心理学の知識を持ち、看護師一人ひとりの個性を理解し、具体的で実践的なアドバイスを提供します。
 
@@ -172,11 +195,22 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
 - 強み: ${personalityData.strengths.join('、')}
 - 適した働き方: ${personalityData.workStyle}
 
+${hasDeepDive ? `【任意の深掘り回答（未回答は推測しない）】
+- 経験年数: ${deepDive?.experienceYears ?? '未回答'}
+- 現在の働き方（領域）: ${deepDive?.currentArea ?? '未回答'}
+- 希望時期: ${deepDive?.desiredTiming ?? '未回答'}
+- 譲れない条件: ${(deepDive?.constraints?.length ?? 0) > 0 ? deepDive?.constraints?.join('、') : '未回答'}
+- 優先順位Top3: ${(deepDive?.priorities?.length ?? 0) > 0 ? deepDive?.priorities?.join('、') : '未回答'}
+- ストレス要因Top3: ${(deepDive?.stressors?.length ?? 0) > 0 ? deepDive?.stressors?.join('、') : '未回答'}
+- 自由記述: ${(deepDive?.freeText?.trim() ?? '') !== '' ? deepDive?.freeText?.trim() : '未回答'}
+` : ''}
+
 【重要】以下の3つの項目について、${String(mbtiType).toUpperCase()}タイプの看護師に特化した、詳細で具体的なアドバイスを提供してください。
 
 1. **careerAdvice（キャリアアドバイス）**
    - このタイプの強み（${personalityData.strengths.join('、')}）を看護現場でどう活かすか、具体的なシーン例を含めて説明
    - ${String(mbtiType).toUpperCase()}タイプに最適な診療科・職場環境・キャリアパスの提案
+   - 上の「任意の深掘り回答」がある場合は必ず反映（経験年数/領域/制約/優先順位/希望時期を踏まえて具体化）
    - 5年後、10年後のキャリアビジョンの描き方
    - 認定看護師・専門看護師など、スペシャリストの道も含めた選択肢
    - 最低400文字以上、できれば500-600文字で詳しく
@@ -184,6 +218,7 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
 2. **stressManagement（ストレス管理）**
    - ${String(mbtiType).toUpperCase()}タイプが特に感じやすいストレスの種類（例：人間関係、業務量、価値観の不一致など）
    - 夜勤、多職種連携、患者・家族対応における具体的なストレスシーンと対処法
+   - 上の「任意の深掘り回答」にストレス要因がある場合は最優先で対策を具体化
    - このタイプに効果的なストレス解消法（休日の過ごし方、リフレッシュ方法）
    - 燃え尽き症候群を防ぐための実践的なアドバイス
    - 最低400文字以上、できれば500-600文字で詳しく
@@ -199,6 +234,7 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
    - 以下の転職サイトから、${String(mbtiType).toUpperCase()}タイプに最も合うサイトを2つ選び、なぜそのサイトが合うのか理由を説明
    - 利用可能なサイト: ${RECRUITMENT_SITES.map((s) => s.name).join('、')}
    - 各サイトの特徴: ${RECRUITMENT_SITES.map((s) => `${s.name}(${s.tags.join(',')})`).join(' / ')}
+   - 上の「任意の深掘り回答」がある場合は、希望時期や制約・優先順位に配慮した理由にする（未回答は推測しない）
    - 必ず2つのサイトを推薦し、${String(mbtiType).toUpperCase()}タイプの性格特性と照らし合わせた具体的な理由を述べる
    - matchScore（0-100）: そのタイプとの相性スコア
 
@@ -211,6 +247,7 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
 【表記ルール（重要）】
 - 返答の文章内ではMarkdown記法を使わないでください（例：**太字**、*斜体*、#見出し、\`\`\`コード\`\`\` など）
 - 強調したい場合は「」や『』など日本語の括弧を用いてください
+ - 深掘り回答の「未回答」は埋めずに、その前提で一般化しすぎない助言をしてください
 
 必ず以下のJSON形式で回答してください。各項目は十分な情報量と具体性を持たせてください：
 {

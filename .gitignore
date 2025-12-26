@@ -47,3 +47,7 @@ chusapo-app/
 
 # Cursor
 .cursor/
+
+# Generated diagnosis artifacts (must never be deployed or committed)
+public/NurseCareer_*.pdf
+public/ナースキャリア診断_*.png
