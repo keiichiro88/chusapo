@@ -493,16 +493,132 @@ export const TYPE_COMPATIBILITY: Record<string, Record<string, TypeCompatibility
   },
 };
 
+function normalizeMbtiType(value: string): string | null {
+  const t = (value || '').trim().toUpperCase();
+  if (/^[EI][SN][TF][JP]$/.test(t)) return t;
+  return null;
+}
+
+function buildCompatibilitySummary(params: {
+  myType: string;
+  theirType: string;
+}): { compatibility: TypeCompatibility['compatibility']; description: string; workTip: string } {
+  const my = params.myType;
+  const th = params.theirType;
+
+  const myEI = my[0];
+  const mySN = my[1];
+  const myTF = my[2];
+  const myJP = my[3];
+
+  const thEI = th[0];
+  const thSN = th[1];
+  const thTF = th[2];
+  const thJP = th[3];
+
+  const sameEI = myEI === thEI;
+  const sameSN = mySN === thSN;
+  const sameTF = myTF === thTF;
+  const sameJP = myJP === thJP;
+
+  const matchCount = [sameEI, sameSN, sameTF, sameJP].filter(Boolean).length;
+
+  const compatibility: TypeCompatibility['compatibility'] =
+    matchCount === 4 ? 'excellent' : matchCount === 3 ? 'good' : matchCount === 2 ? 'neutral' : 'challenging';
+
+  const sameParts: string[] = [];
+  const diffParts: string[] = [];
+
+  if (sameEI) sameParts.push('コミュニケーションのテンポ');
+  else diffParts.push('コミュニケーション量（話して整理 vs 考えて整理）');
+
+  if (sameSN) sameParts.push('情報の捉え方（具体/全体）');
+  else diffParts.push('情報の捉え方（具体志向 vs 全体像志向）');
+
+  if (sameTF) sameParts.push('判断基準（論理/共感）');
+  else diffParts.push('判断基準（論理重視 vs 気持ち重視）');
+
+  if (sameJP) sameParts.push('段取り（計画/柔軟）');
+  else diffParts.push('段取り（計画型 vs 柔軟型）');
+
+  const sameText = sameParts.length ? `共通点：${sameParts.join('・')}` : '';
+  const diffText = diffParts.length ? `違い：${diffParts.join('・')}` : '';
+
+  // 相性の説明（ペアごとに内容が変わるよう、差分を織り込む）
+  let description = '';
+  if (compatibility === 'excellent') {
+    description = `${sameText}。忙しい現場でも意思決定と役割分担が噛み合いやすい組み合わせです。`;
+  } else if (compatibility === 'good') {
+    description = `${sameText}${diffText ? `／${diffText}` : ''}。基本は連携しやすく、違いは補完ポイントになります。`;
+  } else if (compatibility === 'neutral') {
+    description = `${sameText ? `${sameText}。` : ''}${diffText}。前提合わせをすると一気に働きやすくなる関係です。`;
+  } else {
+    description = `${diffText}。優先順位や伝え方がズレやすいので、ルール化と期待値調整が鍵になります。`;
+  }
+
+  // 一緒に働くヒント（差分に応じて具体化、同じ文が出にくいようにする）
+  const tips: string[] = [];
+
+  // 優先順位：判断（TF）→段取り（JP）→情報（SN）→会話（EI）
+  if (!sameTF) {
+    if (myTF === 'T' && thTF === 'F') {
+      tips.push('結論と根拠を先に共有しつつ、言い方は柔らかく。相手の「患者/チームの空気」の情報をもらうと強いです。');
+    } else if (myTF === 'F' && thTF === 'T') {
+      tips.push('まず目的・基準（優先順位）を確認してから相談。提案には根拠を添えると相手が動きやすいです。');
+    }
+  }
+
+  if (!sameJP) {
+    if (myJP === 'J' && thJP === 'P') {
+      tips.push('締切と最低ライン（ここまでは必須）を先に合意し、残りは柔軟に。タスクを小さく切ると揉めにくいです。');
+    } else if (myJP === 'P' && thJP === 'J') {
+      tips.push('予定変更は早めに連絡し、代替案をセットで提示。チェックポイントを決めると安心感が出ます。');
+    }
+  }
+
+  if (!sameSN) {
+    if (mySN === 'S' && thSN === 'N') {
+      tips.push('最初に「目的/全体像→次に手順」をセットで共有。相手のアイデアはチェックリスト化すると現場で回ります。');
+    } else if (mySN === 'N' && thSN === 'S') {
+      tips.push('提案は「目的→具体的な手順/根拠」まで落として渡すと通りやすいです。運用は相手の強みを借りましょう。');
+    }
+  }
+
+  if (!sameEI) {
+    if (myEI === 'E' && thEI === 'I') {
+      tips.push('急ぎでない相談は文章で要点を先出し。対面は短く結論からにすると相手が力を出しやすいです。');
+    } else if (myEI === 'I' && thEI === 'E') {
+      tips.push('相手は話しながら整理しやすいので、まず吐き出しを受け止めて要点を一緒にまとめるとスムーズです。');
+    }
+  }
+
+  // 万一tipsが空なら（同一タイプなど）、汎用だが状況に寄せた文を返す
+  const workTip =
+    tips.length > 0
+      ? tips.slice(0, 2).join(' ')
+      : '役割分担（誰が決める/誰が実行する）を最初に合わせると、忙しい現場でも摩擦が減ります。';
+
+  return { compatibility, description, workTip };
+}
+
 // 相性を取得するヘルパー関数
 export const getTypeCompatibility = (myType: string, theirType: string): TypeCompatibility => {
-  const myCompatibilityMap = TYPE_COMPATIBILITY[myType];
-  if (!myCompatibilityMap) {
-    return { type: theirType, compatibility: 'neutral', description: '互いを理解し合えば良い関係に', workTip: 'コミュニケーションを大切に' };
+  const my = normalizeMbtiType(myType);
+  const th = normalizeMbtiType(theirType);
+
+  if (!my || !th) {
+    return {
+      type: theirType,
+      compatibility: 'neutral',
+      description: '相性を判定するためのタイプ情報が不足しています。',
+      workTip: 'タイプ（例：ENFP）を選び直してください。',
+    };
   }
-  return myCompatibilityMap[theirType] || myCompatibilityMap.default || { 
-    type: theirType, 
-    compatibility: 'neutral', 
-    description: '互いを理解し合えば良い関係に', 
-    workTip: 'コミュニケーションを大切に' 
-  };
+
+  const myCompatibilityMap = TYPE_COMPATIBILITY[my];
+  const explicit = myCompatibilityMap?.[th];
+  if (explicit) return explicit;
+
+  const generated = buildCompatibilitySummary({ myType: my, theirType: th });
+  return { type: th, ...generated };
 };

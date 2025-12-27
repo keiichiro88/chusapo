@@ -24,7 +24,7 @@ const compatibilityColors: Record<string, { bg: string; text: string; border: st
 const compatibilityLabels: Record<string, string> = {
   excellent: '最高の相性',
   good: '良い相性',
-  neutral: '普通の相性',
+  neutral: '工夫で伸びる相性',
   challenging: '学びのある関係',
 };
 
