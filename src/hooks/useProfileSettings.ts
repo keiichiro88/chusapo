@@ -221,7 +221,14 @@ async function uploadProfileImage(params: {
 }
 
 export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
-  const [settings, setSettings] = useState<ProfileSettings>(DEFAULT_SETTINGS);
+  // 初回描画から LocalStorage / authUser を反映して「田中美咲フラッシュ」を防ぐ
+  const [settings, setSettings] = useState<ProfileSettings>(() => {
+    try {
+      return loadSettingsFromStorage(authUser);
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
   const [initialized, setInitialized] = useState(false);
 
   // 初期化とauthUser変更時の設定読み込み
