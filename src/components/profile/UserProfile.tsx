@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Calendar, 
-  Settings, 
   Camera, 
-  Shield, 
   Star,
   MessageCircle,
   Heart,
   BarChart3,
   ArrowLeft,
-  Eye,
   CheckCircle,
   UserPlus,
   UserMinus,
@@ -45,12 +42,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [targetUserId, setTargetUserId] = useState<string | undefined>(propUserId);
   const [targetProfile, setTargetProfile] = useState<any>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const { getUserProfile } = useMultipleProfiles();
   const { getUserGratitudeCount, getUserTopTitle, getUserAchievements } = useGratitude();
   const { users } = useUser();
-  const { questions, isAuthenticated } = useDataProvider();
-  const { user: supabaseUser } = useSupabaseAuth();
+  const { questions } = useDataProvider();
+  const { user: supabaseUser, isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
+  
+  // プロフィール（自分）を開いた直後に「田中美咲」が一瞬出るのを防ぐため、
+  // 認証状態が確定するまではローディングを表示する。
+  if (!userName && authLoading) {
+    return (
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 flex items-center justify-center text-gray-600">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          プロフィールを読み込み中...
+        </div>
+      </div>
+    );
+  }
   
   // 認証ユーザー情報を渡してプロフィール設定を取得
   const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
@@ -67,7 +76,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
       }
 
       // 他のユーザーのプロフィールを取得
-      setIsLoadingProfile(true);
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -86,8 +94,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
         }
       } catch (err) {
         console.error('Profile fetch error:', err);
-      } finally {
-        setIsLoadingProfile(false);
       }
     };
 
@@ -98,7 +104,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
   const {
     isFollowing,
     followCounts,
-    privacySettings,
     followers,
     following,
     isLoading: followLoading,
@@ -106,7 +111,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
     toggleFollow,
     fetchFollowers,
     fetchFollowing,
-    isOwnProfile: isOwnFollowProfile,
     canViewFollowers,
     canViewFollowing,
     isAuthenticated: isFollowAuthenticated,

@@ -6,7 +6,6 @@ import {
   Heart,
   History as HistoryIcon,
   Sparkles,
-  Stethoscope,
   X,
 } from 'lucide-react';
 import { QUESTIONS, PERSONALITY_TYPES } from '../../lib/nurse-tools/mbti-constants';
@@ -1025,6 +1024,7 @@ export function MBTICareerDiagnosisPage() {
             onSaveToProfile={saveToProfile}
             isAuthenticated={isAuthenticated}
             currentProfileMbti={profileSettings.mbtiType}
+            currentProfileShowMbti={profileSettings.showMbtiOnProfile ?? false}
           />
         )}
       </div>

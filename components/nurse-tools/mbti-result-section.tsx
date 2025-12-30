@@ -68,6 +68,7 @@ interface MBTIResultSectionProps {
   onSaveToProfile?: (mbtiType: string, mbtiTitle: string) => Promise<void>;
   isAuthenticated?: boolean;
   currentProfileMbti?: string | null;
+  currentProfileShowMbti?: boolean;
 }
 
 // メイン結果カードをメモ化
@@ -246,6 +247,7 @@ export const MBTIResultSection = memo(function MBTIResultSection({
   onSaveToProfile,
   isAuthenticated,
   currentProfileMbti,
+  currentProfileShowMbti,
 }: MBTIResultSectionProps) {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isSavingImage, setIsSavingImage] = useState(false);
@@ -259,7 +261,8 @@ export const MBTIResultSection = memo(function MBTIResultSection({
   const typeColor = getTypeColor(result.type);
   
   // プロフィールに保存済みかどうか
-  const isAlreadySavedToProfile = currentProfileMbti === result.type;
+  // MBTIタイプが同じでも「プロフィール表示OFF」なら再反映（ON）できるようにする
+  const isAlreadySavedToProfile = currentProfileMbti === result.type && !!currentProfileShowMbti;
 
   // SNSシェア機能
   const shareToTwitter = () => {

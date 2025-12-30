@@ -13,6 +13,17 @@ export interface UserProfile {
   speciality: string;
   experience: string;
   workplace: string;
+  socialLinks?: {
+    youtube?: string;
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+    website?: string;
+  };
+  // MBTI診断結果（プロフィール表示用：デモ/実ユーザー共通の型に揃える）
+  mbtiType?: string | null;
+  mbtiTitle?: string | null;
+  showMbtiOnProfile?: boolean;
 }
 
 // デモユーザーのプロフィールデータ

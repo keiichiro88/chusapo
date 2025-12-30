@@ -43,6 +43,8 @@ export interface AppUser {
   isEmailVerified: boolean;
   createdAt: Date;
   lastLoginAt: Date;
+  // profiles の付帯情報（画面によって参照されるため任意で保持）
+  totalGratitude?: number;
 }
 
 function toAppUser(user: SupabaseUser): AppUser {
@@ -56,7 +58,8 @@ function toAppUser(user: SupabaseUser): AppUser {
     tier: 'basic',
     isEmailVerified: !!user.email_confirmed_at,
     createdAt: new Date(user.created_at || Date.now()),
-    lastLoginAt: new Date()
+    lastLoginAt: new Date(),
+    totalGratitude: 0
   };
 }
 
