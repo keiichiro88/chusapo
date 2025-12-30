@@ -94,3 +94,6 @@ GRANT EXECUTE ON FUNCTION public.consume_mbti_ai_quota(UUID) TO authenticated;
 
 
 
+
+
+
