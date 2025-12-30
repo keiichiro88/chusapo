@@ -8,7 +8,7 @@
  * - ユーザー情報の取得
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { devLog } from '../lib/logger';
@@ -71,11 +71,34 @@ export const useSupabaseAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
   // エラー状態
   const [error, setError] = useState<string | null>(null);
+  // `getSession()` と `onAuthStateChange()` の競合で「一瞬ログイン→ログアウト扱い」になるのを防ぐ
+  const didReceiveAuthEventRef = useRef(false);
 
   /**
    * 初期化時にセッションを確認し、認証状態の変更を監視
    */
   useEffect(() => {
+    didReceiveAuthEventRef.current = false;
+
+    // 認証状態の変更を監視（INITIAL_SESSION含む）
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      didReceiveAuthEventRef.current = true;
+      devLog('認証状態変更:', event);
+      setSession(session);
+      setSupabaseUser(session?.user ?? null);
+
+      if (session?.user) {
+        setAppUser(toAppUser(session.user));
+      } else {
+        setAppUser(null);
+      }
+
+      // INITIAL_SESSION が届いた時点でローディング解除
+      setIsLoading(false);
+    });
+
     // 現在のセッションを取得（タイムアウト付き）
     const getInitialSession = async () => {
       try {
@@ -87,38 +110,33 @@ export const useSupabaseAuth = () => {
         
         if (result.error) throw result.error;
 
+        // onAuthStateChange(INITIAL_SESSION) が先に届いていた場合は、ここで上書きしない
+        if (didReceiveAuthEventRef.current) return;
+
         setSession(result.data.session);
         setSupabaseUser(result.data.session?.user ?? null);
 
         if (result.data.session?.user) {
           setAppUser(toAppUser(result.data.session.user));
+        } else {
+          setAppUser(null);
         }
       } catch (err) {
         console.error('セッション取得エラー:', err);
+        // onAuthStateChange(INITIAL_SESSION) が先に届いていた場合は、ログアウト扱いにしない
+        if (didReceiveAuthEventRef.current) return;
+
         // エラー時はローカルストレージモードで続行（エラーメッセージは表示しない）
         setSession(null);
         setSupabaseUser(null);
+        setAppUser(null);
       } finally {
-        setIsLoading(false);
+        // onAuthStateChange がまだ届いていない場合のみローディング解除
+        if (!didReceiveAuthEventRef.current) setIsLoading(false);
       }
     };
 
     getInitialSession();
-
-    // 認証状態の変更を監視
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        devLog('認証状態変更:', event);
-        setSession(session);
-        setSupabaseUser(session?.user ?? null);
-
-        if (session?.user) {
-          setAppUser(toAppUser(session.user));
-        } else {
-          setAppUser(null);
-        }
-      }
-    );
 
     // クリーンアップ
     return () => {
