@@ -64,6 +64,10 @@ interface MBTIResultSectionProps {
   onSelectFromHistory: (item: DiagnosisHistoryItem) => void;
   onDeleteFromHistory: (id: string) => void;
   onClearHistory: () => void;
+  // プロフィール反映用
+  onSaveToProfile?: (mbtiType: string, mbtiTitle: string) => Promise<void>;
+  isAuthenticated?: boolean;
+  currentProfileMbti?: string | null;
 }
 
 // メイン結果カードをメモ化
@@ -239,15 +243,23 @@ export const MBTIResultSection = memo(function MBTIResultSection({
   onSelectFromHistory,
   onDeleteFromHistory,
   onClearHistory,
+  onSaveToProfile,
+  isAuthenticated,
+  currentProfileMbti,
 }: MBTIResultSectionProps) {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isSavingImage, setIsSavingImage] = useState(false);
   const [isSavingPDF, setIsSavingPDF] = useState(false);
+  const [isSavingToProfile, setIsSavingToProfile] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
   const [aiRetryCount, setAiRetryCount] = useState(0);
   const resultCardRef = useRef<HTMLDivElement>(null);
   const pdfContentRef = useRef<HTMLDivElement>(null);
 
   const typeColor = getTypeColor(result.type);
+  
+  // プロフィールに保存済みかどうか
+  const isAlreadySavedToProfile = currentProfileMbti === result.type;
 
   // SNSシェア機能
   const shareToTwitter = () => {
@@ -332,6 +344,25 @@ export const MBTIResultSection = memo(function MBTIResultSection({
     onRetryAIAdvice();
   };
 
+  // プロフィールに保存
+  const handleSaveToProfile = async () => {
+    if (!onSaveToProfile) return;
+    
+    setIsSavingToProfile(true);
+    setProfileSaveSuccess(false);
+    try {
+      await onSaveToProfile(result.type, result.title);
+      setProfileSaveSuccess(true);
+      // 3秒後に成功メッセージを消す
+      setTimeout(() => setProfileSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to save to profile:', error);
+      alert('プロフィールへの保存に失敗しました');
+    } finally {
+      setIsSavingToProfile(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Share Button - Fixed Position */}
@@ -374,6 +405,40 @@ export const MBTIResultSection = memo(function MBTIResultSection({
                 <FileText className={`w-5 h-5 text-red-500 ${isSavingPDF ? 'animate-pulse' : ''}`} />
                 <span className="font-medium">{isSavingPDF ? '生成中...' : 'PDFで保存'}</span>
               </button>
+              {/* プロフィールに反映ボタン */}
+              {isAuthenticated && onSaveToProfile && (
+                <>
+                  <div className="border-t border-slate-100 my-1"></div>
+                  <button
+                    onClick={handleSaveToProfile}
+                    disabled={isSavingToProfile || isAlreadySavedToProfile}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isAlreadySavedToProfile 
+                        ? 'bg-green-50 text-green-700 cursor-default' 
+                        : profileSaveSuccess
+                        ? 'bg-green-50 text-green-700'
+                        : 'hover:bg-slate-50 disabled:opacity-50'
+                    }`}
+                  >
+                    {isAlreadySavedToProfile ? (
+                      <>
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <span className="font-medium">プロフィールに反映済み</span>
+                      </>
+                    ) : profileSaveSuccess ? (
+                      <>
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <span className="font-medium">反映しました！</span>
+                      </>
+                    ) : (
+                      <>
+                        <Star className={`w-5 h-5 text-amber-500 ${isSavingToProfile ? 'animate-spin' : ''}`} />
+                        <span className="font-medium">{isSavingToProfile ? '保存中...' : 'プロフィールに反映'}</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           )}
           <button

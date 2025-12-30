@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Camera, Upload, MapPin, Link as LinkIcon, User, Briefcase, Palette, Image as ImageIcon, Youtube, Instagram, Twitter, Linkedin, Globe, Lock, Unlock, Users } from 'lucide-react';
+import { X, Camera, Upload, MapPin, Link as LinkIcon, User, Briefcase, Palette, Image as ImageIcon, Youtube, Instagram, Twitter, Linkedin, Globe, Lock, Unlock, Users, Star } from 'lucide-react';
 import Modal from '../auth/Modal';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
@@ -56,6 +56,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
   // 公開設定
   const [isFollowersListPublic, setIsFollowersListPublic] = useState(true);
   const [isFollowingListPublic, setIsFollowingListPublic] = useState(true);
+  
+  // MBTI表示設定
+  const [showMbtiOnProfile, setShowMbtiOnProfile] = useState(false);
   
   const avatarFileRef = useRef<HTMLInputElement>(null);
   const backgroundFileRef = useRef<HTMLInputElement>(null);
@@ -114,6 +117,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
       // 公開設定を初期化
       setIsFollowersListPublic(privacySettings.is_followers_list_public);
       setIsFollowingListPublic(privacySettings.is_following_list_public);
+      // MBTI表示設定を初期化
+      setShowMbtiOnProfile(settings.showMbtiOnProfile || false);
     }
   }, [isOpen, settings, privacySettings]);
 
@@ -130,7 +135,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
         avatarImage,
         backgroundImage,
         avatarGradient: selectedAvatarGradient,
-        backgroundGradient: selectedBackgroundGradient
+        backgroundGradient: selectedBackgroundGradient,
+        showMbtiOnProfile
       });
       
       // 公開設定を保存（Supabaseログイン時のみ）
@@ -811,6 +817,55 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
                   <Lock className="h-3 w-3 mr-1" />
                   非公開にしても、フォロワー数・フォロー中数は表示されます
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* MBTI表示設定（診断済みの場合のみ表示） */}
+          {settings.mbtiType && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-3">
+                <div className="flex items-center">
+                  <span className="mr-2">🧠</span>
+                  キャリア診断AI
+                </div>
+              </label>
+              <div className="space-y-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                {/* 現在のMBTIタイプ */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-purple-900">
+                      あなたのタイプ: {settings.mbtiType}
+                    </p>
+                    {settings.mbtiTitle && (
+                      <p className="text-xs text-purple-600">{settings.mbtiTitle}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* MBTI表示ON/OFF */}
+                <div className="flex items-center justify-between pt-2 border-t border-purple-200">
+                  <div className="flex items-center space-x-3">
+                    <Star className="h-5 w-5 text-amber-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">プロフィールに表示</p>
+                      <p className="text-xs text-gray-500">MBTIタイプを他のユーザーに公開する</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowMbtiOnProfile(!showMbtiOnProfile)}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                      showMbtiOnProfile ? 'bg-purple-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        showMbtiOnProfile ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           )}

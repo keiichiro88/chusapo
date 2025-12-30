@@ -22,6 +22,7 @@ import {
 import { MBTIButton, MBTICard, MBTIProgressBar, SkipLink, LikertButtonGroup } from './mbti-ui';
 import { MBTIResultSection } from './mbti-result-section';
 import { useSupabaseAuth } from '../../src/hooks/useSupabaseAuth';
+import { useProfileSettings } from '../../src/hooks/useProfileSettings';
 import { generateUUID } from '../../src/lib/uuid';
 
 const MBTIHistory = React.lazy(() =>
@@ -107,9 +108,13 @@ interface SavedResult {
 }
 
 export function MBTICareerDiagnosisPage() {
-  const { session, isAuthenticated } = useSupabaseAuth();
+  const { session, isAuthenticated, user: supabaseUser } = useSupabaseAuth();
   const accessToken = session?.access_token || null;
   const isDebug = import.meta.env.DEV && new URLSearchParams(window.location.search).has('mbti-debug');
+  
+  // プロフィール設定（MBTI反映用）
+  const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
+  const { settings: profileSettings, updateSettings: updateProfileSettings } = useProfileSettings(authUserInfo);
 
   const [appState, setAppState] = useState<AppState>(AppState.WELCOME);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -270,6 +275,21 @@ export function MBTICareerDiagnosisPage() {
       }
     },
     [sessionId]
+  );
+
+  // プロフィールにMBTI結果を保存
+  const saveToProfile = useCallback(
+    async (mbtiType: string, mbtiTitle: string) => {
+      if (!isAuthenticated) {
+        throw new Error('ログインが必要です');
+      }
+      await updateProfileSettings({
+        mbtiType,
+        mbtiTitle,
+        showMbtiOnProfile: true,
+      });
+    },
+    [isAuthenticated, updateProfileSettings]
   );
 
   const fetchAIAdvice = useCallback(
@@ -1002,6 +1022,9 @@ export function MBTICareerDiagnosisPage() {
             onSelectFromHistory={selectFromHistory}
             onDeleteFromHistory={deleteFromHistory}
             onClearHistory={clearHistory}
+            onSaveToProfile={saveToProfile}
+            isAuthenticated={isAuthenticated}
+            currentProfileMbti={profileSettings.mbtiType}
           />
         )}
       </div>

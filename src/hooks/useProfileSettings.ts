@@ -22,6 +22,10 @@ export interface ProfileSettings {
     linkedin?: string;
     website?: string;
   };
+  // MBTI診断結果
+  mbtiType?: string | null;
+  mbtiTitle?: string | null;
+  showMbtiOnProfile?: boolean;
 }
 
 const DEFAULT_SETTINGS: ProfileSettings = {
@@ -36,7 +40,10 @@ const DEFAULT_SETTINGS: ProfileSettings = {
   website: '',
   speciality: '循環器内科',
   experience: '10年目',
-  workplace: '総合病院'
+  workplace: '総合病院',
+  mbtiType: null,
+  mbtiTitle: null,
+  showMbtiOnProfile: false
 };
 
 // 認証ユーザー情報の型（循環依存を避けるため独自定義）
@@ -64,6 +71,9 @@ type DbProfileRow = {
   background_url: string | null;
   avatar_gradient: string | null;
   background_gradient: string | null;
+  mbti_type: string | null;
+  mbti_title: string | null;
+  show_mbti_on_profile: boolean | null;
 };
 
 // LocalStorageから設定を読み込むヘルパー関数
@@ -127,7 +137,10 @@ function dbProfileToSettings(profile: DbProfileRow, authUser: AuthUserInfo): Pro
     backgroundImage: profile.background_url ?? null,
     avatarGradient: profile.avatar_gradient ?? DEFAULT_SETTINGS.avatarGradient,
     backgroundGradient: profile.background_gradient ?? DEFAULT_SETTINGS.backgroundGradient,
-    socialLinks: profile.social_links ?? undefined
+    socialLinks: profile.social_links ?? undefined,
+    mbtiType: profile.mbti_type ?? null,
+    mbtiTitle: profile.mbti_title ?? null,
+    showMbtiOnProfile: profile.show_mbti_on_profile ?? false
   };
 }
 
@@ -147,6 +160,9 @@ function settingsToDbPatch(settings: Partial<ProfileSettings>): Partial<DbProfil
   if ('backgroundGradient' in settings) patch.background_gradient = settings.backgroundGradient ?? null;
   if ('avatarImage' in settings) patch.avatar_url = settings.avatarImage ?? null;
   if ('backgroundImage' in settings) patch.background_url = settings.backgroundImage ?? null;
+  if ('mbtiType' in settings) patch.mbti_type = settings.mbtiType ?? null;
+  if ('mbtiTitle' in settings) patch.mbti_title = settings.mbtiTitle ?? null;
+  if ('showMbtiOnProfile' in settings) patch.show_mbti_on_profile = settings.showMbtiOnProfile ?? false;
 
   return patch;
 }
@@ -223,7 +239,7 @@ export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
         const { data, error } = await supabase
           .from('profiles')
           .select(
-            'id,name,role,bio,speciality,experience,workplace,location,website,social_links,avatar_url,background_url,avatar_gradient,background_gradient'
+            'id,name,role,bio,speciality,experience,workplace,location,website,social_links,avatar_url,background_url,avatar_gradient,background_gradient,mbti_type,mbti_title,show_mbti_on_profile'
           )
           .eq('id', authUser.id)
           .maybeSingle();
@@ -324,7 +340,7 @@ export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
               { onConflict: 'id' }
             )
             .select(
-              'id,name,role,bio,speciality,experience,workplace,location,website,social_links,avatar_url,background_url,avatar_gradient,background_gradient'
+              'id,name,role,bio,speciality,experience,workplace,location,website,social_links,avatar_url,background_url,avatar_gradient,background_gradient,mbti_type,mbti_title,show_mbti_on_profile'
             )
             .maybeSingle();
 

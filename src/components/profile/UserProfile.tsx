@@ -169,7 +169,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
     speciality: targetProfile.speciality || '',
     experience: targetProfile.experience || '',
     workplace: targetProfile.workplace || '',
-    socialLinks: targetProfile.social_links || {}
+    socialLinks: targetProfile.social_links || {},
+    mbtiType: targetProfile.mbti_type || null,
+    mbtiTitle: targetProfile.mbti_title || null,
+    showMbtiOnProfile: targetProfile.show_mbti_on_profile || false
   } : profileData || settings;
   
   if (!profileData && !targetProfile && realUser && userName) {
@@ -434,6 +437,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
           <p className="text-gray-600 text-sm font-medium mb-1">{user.role}</p>
           {userTopTitle && (
             <p className="text-emerald-600 text-sm font-bold">🏆 {userTopTitle}</p>
+          )}
+          {/* MBTIタイプ表示 */}
+          {currentProfile.showMbtiOnProfile && currentProfile.mbtiType && (
+            <div className="mt-2 inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-full">
+              <span className="text-xs font-bold text-purple-700 mr-1.5">🧠 MBTI:</span>
+              <span className="text-sm font-bold text-purple-900">{currentProfile.mbtiType}</span>
+              {currentProfile.mbtiTitle && (
+                <span className="text-xs text-purple-600 ml-1.5">({currentProfile.mbtiTitle})</span>
+              )}
+            </div>
           )}
         </div>
 
