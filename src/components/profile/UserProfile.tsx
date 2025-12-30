@@ -47,19 +47,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
   const { users } = useUser();
   const { questions } = useDataProvider();
   const { user: supabaseUser, isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
-  
-  // プロフィール（自分）を開いた直後に「田中美咲」が一瞬出るのを防ぐため、
-  // 認証状態が確定するまではローディングを表示する。
-  if (!userName && authLoading) {
-    return (
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 flex items-center justify-center text-gray-600">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          プロフィールを読み込み中...
-        </div>
-      </div>
-    );
-  }
+  const shouldShowInitialLoading = !userName && authLoading;
   
   // 認証ユーザー情報を渡してプロフィール設定を取得
   const authUserInfo = supabaseUser ? { id: supabaseUser.id, name: supabaseUser.name, role: supabaseUser.role } : null;
@@ -295,6 +283,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId: propUserId, userName,
     }
     return null;
   };
+
+  // NOTE: Hookの呼び出し順を崩さないため、ローディング表示は全Hook実行後に分岐する
+  if (shouldShowInitialLoading) {
+    return (
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 flex items-center justify-center text-gray-600">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          プロフィールを読み込み中...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
