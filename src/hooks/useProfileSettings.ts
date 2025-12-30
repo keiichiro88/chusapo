@@ -342,7 +342,6 @@ export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
               {
                 id: authUser.id,
                 ...dbPatch,
-                updated_at: new Date().toISOString()
               },
               { onConflict: 'id' }
             )
@@ -359,6 +358,8 @@ export const useProfileSettings = (authUser?: AuthUserInfo | null) => {
           }
         } catch (e) {
           devWarn('Supabaseプロフィール保存に失敗しました（LocalStorageに保存済み）:', e);
+          // 画面側で失敗を検知できるようにする（MBTI反映などで成功表示だけ出てしまうのを防ぐ）
+          throw e;
         }
       }
 
